@@ -7,17 +7,17 @@ pipeline {
     }
 
     stages {
-        stage("stage => Checkout-SCM") {
+        stage("Process => Checkout-SCM") {
             steps {
-                git branch: 'main', url: ${env.REPO_PROJECT}
+                git branch: 'main', url: "${env.REPO_PROJECT}"
             }
         }
-        stage("stage => Build_Image") {
+        stage("Process => Build_Image") {
             steps {
                 sh "sudo docker image ls"
             }
         }
-        stage("stage => Test_Container") {
+        stage("Process => Test_Container") {
             steps {
                 sh """
                 sudo docker ps -a
@@ -25,7 +25,7 @@ pipeline {
                 """
             }
         }
-        stage("stage => Deploy_Application") {
+        stage("Process => Deploy_Application") {
             steps {
                 echo "Deploying .........."   
             }
