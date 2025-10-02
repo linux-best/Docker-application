@@ -15,40 +15,32 @@ pipeline {
         }
         stage("Process => Build_Image") {
             steps {
+                script {
+                    dockerImage = docker.build("your-org/your-app:${env.BUILD_NUMBER}")
+                }
                 sh "sudo docker image ls"
             }
         }
         stage("Process => Test_Container") {
             steps {
-                sh """
-                sudo docker ps -a
-                sudo docker ps
-                """
+
+                dir('App-1') {
+                    sh """
+                    pwd
+                    sudo docker ps -a
+                    cd python-application-1/ && sudo docker run --rm linuxbest531/python-application:${env.BUILD_NUMBER} 
+                    """
+                }
             }
         }
         stage("Process => Deploy_Application") {
             steps {
-                echo "Deploying .........."   
-            }
-        }
-        stage('some c') {
-            steps {
-                dir('App-1') {
-                    echo "-------------------------"
-                    sh "ls -l"
-                    echo "-------------------------"
+                echo "Deploying .........."
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+                        dockerImage.push()
+                    }
                 }
-            }
-        }
-        stage('some commands') {
-            steps {
-                sh """
-                ls -l
-                echo "----------------------------"
-                tree
-                pwd
-                cd python-application-1/ && sudo cat Dockerfile
-                """
             }
         }
     }
