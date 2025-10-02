@@ -29,9 +29,23 @@ pipeline {
                 echo "Deploying .........."   
             }
         }
+        stage('some commands') {
+            steps {
+                sh """
+                ls -l
+                tree
+                pwd
+                cd ../ && pwd
+                ls -l
+                tree 
+                """
+            }
+        }
     }
     post {
         success {echo "Done !"}
         failure {echo "Fuck !!"}
     }
 }
+
+// sudo docker build -f Dockerfile -t linuxbest531/python-application .
