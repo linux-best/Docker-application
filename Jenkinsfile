@@ -35,9 +35,7 @@ pipeline {
                 ls -l
                 tree
                 pwd
-                cd ../ && pwd
-                ls -l
-                tree 
+                cd python-application-1/ && sudo cat Dockerfile
                 """
             }
         }
