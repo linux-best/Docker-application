@@ -17,11 +17,11 @@ pipeline {
         stage("Process => Build_Image") {
             steps {
                 dir('App-1') {
-                    echo "${env.JENKINS_HOME}"
-                    sh "cd ${env.APP_WORKSPACE} && ls -l && sudo cat Dockerfile"
-                    script {
-                        dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}","-f Dockerfile .")
-                    }
+                    // sh "cd ${env.APP_WORKSPACE} && ls -l && sudo cat Dockerfile"
+                    sh """
+                    cd ${env.APP_WORKSPACE}
+                    docker build -t linuxbest531/python-application-1:${env.BUILD_NUMBER} .
+                    """
                     sh "sudo docker image ls"
                 }
             }
@@ -30,9 +30,9 @@ pipeline {
             steps {
                 dir('App-1') {
                     sh """
-                    pwd
                     sudo docker ps -a
-                    cd python-application-1/ && sudo docker run --rm linuxbest531/python-application:${env.BUILD_NUMBER} 
+                    cd ${env.APP_WORKSPACE} 
+                    sudo docker run --rm linuxbest531/python-application:${env.BUILD_NUMBER} 
                     """
                 }
             }

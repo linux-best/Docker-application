@@ -2,27 +2,25 @@ pipeline {
     agent any
 
     environment {
-        PATH_DOCKERFILE = '/home/javande/Docker-application/python-application-1/'
-        VAR_DOCKER = 'linuxbest531/python-application'
-    }
 
+    }
+    
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/linux-best/Docker-application/'
+                git branch: 'main', url: 'https://github.com/your-org/your-repo.git'
             }
         }
         stage('Build') {
             steps {
-                sh """"
-                cd python-application-1/
-                sudo docker build  -f Dockerfile -t linux531/python-application "${env.PATH_DOCKERFILE}"
-                """
+                script {
+                    dockerImage = docker.build("your-org/your-app:${env.BUILD_NUMBER}")
+                }
             }
         }
         stage('Test') {
             steps {
-                sh 'docker run --rm "${env.VAR_DOCKER}:${env.BUILD_NUMBER}"'
+                sh 'docker run --rm your-org/your-app:${env.BUILD_NUMBER} ./run-tests.sh'
             }
         }
         stage('Push') {
