@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        REPO_PROJECT = 'https://github.com/linux-best/Docker-application'
+        REPO_PROJECT = 'https://github.com/linux-best/Docker-application/python-application-1/'
     }
 
     stages {
@@ -35,7 +35,7 @@ pipeline {
                 ls -l
                 tree
                 pwd
-                cd python-application-1/ && sudo cat Dockerfile
+                sudo cat Dockerfile
                 """
             }
         }
