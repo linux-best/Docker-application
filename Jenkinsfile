@@ -19,8 +19,7 @@ pipeline {
                 dir('App-1') {
                     // sh "cd ${env.APP_WORKSPACE} && ls -l && sudo cat Dockerfile"
                     sh """
-                    cd ${env.APP_WORKSPACE}
-                    docker build -t linuxbest531/python-application-1:${env.BUILD_NUMBER} .
+                    cd ${env.APP_WORKSPACE} && ls -l && docker build -t linuxbest531/python-application-1:${env.BUILD_NUMBER} .
                     """
                     sh "sudo docker image ls"
                 }
