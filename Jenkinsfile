@@ -17,7 +17,10 @@ pipeline {
         stage("Process => Build_Image") {
             steps {
                 dir('App-1') {
-                    sh "cd ${env.APP_WORKSPACE} && ls -l && sudo cat Dockerfile"
+                    // sh "cd ${env.APP_WORKSPACE} && ls -l && sudo cat Dockerfile"
+                    sh """cd ${env.APP_WORKSPACE} && pwd
+                    pwd
+                    """
                     script {
                     dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}")
                 }
