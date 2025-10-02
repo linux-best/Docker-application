@@ -34,7 +34,9 @@ pipeline {
         stage('some c') {
             steps {
                 dir('App-1') {
+                    echo "-------------------------"
                     sh "ls -l"
+                    echo "-------------------------"
                 }
             }
         }
@@ -42,10 +44,10 @@ pipeline {
             steps {
                 sh """
                 ls -l
+                echo "----------------------------"
                 tree
                 pwd
                 cd python-application-1/ && sudo cat Dockerfile
-                sudo 
                 """
             }
         }
