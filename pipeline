@@ -13,9 +13,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                script {
-                    dockerImage = docker.build("${env.VAR_DOCKER}:${env.BUILD_NUMBER}")
-                }
+                sh "sudo docker build -t linux531/python-application . -f Dockerfile "
             }
         }
         stage('Test') {
