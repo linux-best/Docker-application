@@ -1,14 +1,15 @@
 pipeline {
     agent any
 
-    enviroment {
+    environment {
         CONTAINER_ID = "1"
-        REPO_PROJECT = "http"
+        REPO_PROJECT = 'https://github.com/linux-best/Docker-application'
     }
+
     stages {
         stage("stage => Checkout-SCM") {
             steps {
-                git branch: 'main', url: 'https://github.com/linux-best/Docker-application'
+                git branch: 'main', url: ${env.REPO_PROJECT}
             }
         }
         stage("stage => Build_Image") {
@@ -18,14 +19,16 @@ pipeline {
         }
         stage("stage => Test_Container") {
             steps {
-                """
+                sh """
                 sudo docker ps -a
                 sudo docker ps
                 """
             }
         }
         stage("stage => Deploy_Application") {
-            echo "Deploying .........."
+            steps {
+                echo "Deploying .........."   
+            }
         }
     }
     post {
