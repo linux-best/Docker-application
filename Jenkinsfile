@@ -37,7 +37,7 @@ pipeline {
         }
         stage("Process => Deploy_Application") {
             steps {
-                echo "Deploying .........."
+                echo "Deploying ..........."
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
                         dockerImage.push()
