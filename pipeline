@@ -13,7 +13,14 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh "pwd && cd python-application-1/"
+                sh """
+                ls -l
+                pwd
+                cd python-application-1/
+                ls -l
+                cd ../../../
+                tree -l
+                """
                 script {
                     dockerImage = docker.build("${env.VAR_DOCKER}:${env.BUILD_NUMBER}")
                 }
