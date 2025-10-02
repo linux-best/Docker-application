@@ -13,7 +13,11 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh "sudo docker build -t linux531/python-application . -f Dockerfile "
+                sh "pwd && cd python-application-1/"
+                script {
+                    dockerImage = docker.build("your-org/your-app:${env.BUILD_NUMBER}")
+                }
+                // sh "sudo docker build -t linux531/python-application . -f Dockerfile"
             }
         }
         stage('Test') {
