@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        PATH_DOCKERFILE = '/home/javande/Docker-application/python-application-1/'
         VAR_DOCKER = 'linuxbest531/python-application'
     }
 
@@ -13,18 +14,10 @@ pipeline {
         }
         stage('Build') {
             steps {
-                sh """
-                ls -l
-                pwd
+                sh """"
                 cd python-application-1/
-                ls -l
-                cd ../../../
-                tree -l
+                sudo docker build  -f Dockerfile -t linux531/python-application "${env.PATH_DOCKERFILE}"
                 """
-                script {
-                    dockerImage = docker.build("${env.VAR_DOCKER}:${env.BUILD_NUMBER}")
-                }
-                // sh "sudo docker build -t linux531/python-application . -f Dockerfile"
             }
         }
         stage('Test') {
