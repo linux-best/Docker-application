@@ -22,6 +22,7 @@ pipeline {
                         dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}","-f Dockerfile .")
                     }
                     sh "sudo docker image ls"
+                    echo "${env.JENKINS_HOME}"
                 }
             }
         }
