@@ -21,6 +21,7 @@ pipeline {
                     sh """cd ${env.APP_WORKSPACE} && pwd
                     pwd
                     """
+                    sh "pwd"
                     script {
                     dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}")
                 }
