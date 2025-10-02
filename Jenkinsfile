@@ -15,15 +15,17 @@ pipeline {
         }
         stage("Process => Build_Image") {
             steps {
-                script {
-                    dockerImage = docker.build("your-org/your-app:${env.BUILD_NUMBER}")
+                dir('App-1') {
+                    sh "ls -l && sudo cat Dockerfile"
+                    script {
+                    dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}")
                 }
                 sh "sudo docker image ls"
+                }
             }
         }
         stage("Process => Test_Container") {
             steps {
-
                 dir('App-1') {
                     sh """
                     pwd
