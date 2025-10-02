@@ -1,0 +1,36 @@
+pipeline {
+    agent any
+
+    environment {
+        VAR_DOCKER = 'linuxbest531/python-application'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/linux-best/Docker-application/'
+            }
+        }
+        stage('Build') {
+            steps {
+                script {
+                    dockerImage = docker.build("${env.VAR_DOCKER}:${env.BUILD_NUMBER}")
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'docker run --rm "${env.VAR_DOCKER}:${env.BUILD_NUMBER}"'
+            }
+        }
+        stage('Push') {
+            steps {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+                        dockerImage.push()
+                    }
+                }
+            }
+        }
+    }
+}

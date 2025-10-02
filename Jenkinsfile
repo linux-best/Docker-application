@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     environment {
-        CONTAINER_ID = "1"
         REPO_PROJECT = 'https://github.com/linux-best/Docker-application'
     }
 
