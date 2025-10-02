@@ -2,13 +2,15 @@ pipeline {
     agent any
 
     environment {
-        REPO_PROJECT = 'https://github.com/linux-best/Docker-application/python-application-1/'
+        REPO_PROJECT = 'https://github.com/linux-best/Docker-application'
     }
 
     stages {
         stage("Process => Checkout-SCM") {
             steps {
-                git branch: 'main', url: "${env.REPO_PROJECT}"
+                dir("App-1") {
+                    git branch: 'main', url: "${env.REPO_PROJECT}"
+                }
             }
         }
         stage("Process => Build_Image") {
@@ -29,13 +31,21 @@ pipeline {
                 echo "Deploying .........."   
             }
         }
+        stage('some c') {
+            steps {
+                dir('App-1') {
+                    sh "ls -l"
+                }
+            }
+        }
         stage('some commands') {
             steps {
                 sh """
                 ls -l
                 tree
                 pwd
-                sudo cat Dockerfile
+                cd python-application-1/ && sudo cat Dockerfile
+                sudo 
                 """
             }
         }
