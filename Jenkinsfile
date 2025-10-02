@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         REPO_PROJECT = 'https://github.com/linux-best/Docker-application'
+        APP_WORKSPACE = "python-application-1/"  
     }
 
     stages {
@@ -16,7 +17,7 @@ pipeline {
         stage("Process => Build_Image") {
             steps {
                 dir('App-1') {
-                    sh "ls -l && sudo cat Dockerfile"
+                    sh "cd ${env.APP_WORKSPACE} && ls -l && sudo cat Dockerfile"
                     script {
                     dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}")
                 }
