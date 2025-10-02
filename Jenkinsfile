@@ -19,7 +19,7 @@ pipeline {
                 dir('App-1') {
                     sh "cd ${env.APP_WORKSPACE} && ls -l && sudo cat Dockerfile"
                     script {
-                        dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}","-f ${env.APP_WORKSPACE}Dockerfile .")
+                        dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}","-f Dockerfile .")
                     }
                     sh "sudo docker image ls"
                 }
