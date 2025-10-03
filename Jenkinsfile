@@ -1,50 +1,32 @@
 pipeline {
     agent any
 
-    environment {
-        REPO_PROJECT = 'https://github.com/linux-best/Docker-application'
-        APP_WORKSPACE = "python-application-1/"  
+    enviroment {
+        CONTAINER_ID = "1"
+        REPO_PROJECT = "http"
+        AUTH_PASS = credentials("dockerhub_credentials")
     }
-
     stages {
-        stage("Process => Checkout-SCM") {
+        stage("stage => Checkout-SCM") {
             steps {
-                dir("App-1") {
-                    git branch: 'main', url: "${env.REPO_PROJECT}"
-                }
+                git branch: 'main', url: 'https://github.com/linux-best/Docker-application'
             }
         }
-        stage("Process => Build_Image") {
+        stage("stage => Build_Image") {
             steps {
-                dir('App-1') {
-                    // sh "cd ${env.APP_WORKSPACE} && ls -l && sudo cat Dockerfile"
-                    sh """
-                    cd ${env.APP_WORKSPACE} && ls -l && docker build -t linuxbest531/python-application-1:${env.BUILD_NUMBER} .
-                    """
-                    sh "sudo docker image ls"
-                }
+                sh "sudo docker image ls"
             }
         }
-        stage("Process => Test_Container") {
+        stage("stage => Test_Container") {
             steps {
-                dir('App-1') {
-                    sh """
-                    sudo docker ps -a
-                    cd ${env.APP_WORKSPACE} 
-                    sudo docker run --rm linuxbest531/python-application:${env.BUILD_NUMBER} 
-                    """
-                }
+                """
+                sudo docker ps -a
+                sudo docker ps
+                """
             }
         }
-        stage("Process => Deploy_Application") {
-            steps {
-                echo "Deploying ..........."
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                        dockerImage.push()
-                    }
-                }
-            }
+        stage("stage => Deploy_Application") {
+            echo "Deploying .........."
         }
     }
     post {
@@ -52,5 +34,3 @@ pipeline {
         failure {echo "Fuck !!"}
     }
 }
-
-// sudo docker build -f Dockerfile -t linuxbest531/python-application .
