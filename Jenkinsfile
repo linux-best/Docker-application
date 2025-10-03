@@ -23,10 +23,10 @@
             steps {
                 sh """
                 docker run -d --name py_app -p 5150:5150 linuxbest531/python-application:${env.BUILD_NUMBER}
-                docker ps 
+                docker ps -a
                 sleep 20
                 docker stop py_app
-                docker ps 
+                docker ps -a
                 """
             }
         }
