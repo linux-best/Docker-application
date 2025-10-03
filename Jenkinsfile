@@ -22,8 +22,9 @@
         stage("Process => Test_Container") {
             steps {
                 sh """
-                docker run --rm -i -p 5150:5150 linuxbest531/python-application:${env.BUILD_NUMBER}
-                sleep 10
+                docker run -d --name py_app -p 5150:5150 linuxbest531/python-application:${env.BUILD_NUMBER}
+                sleep 20
+                docker stop py_app
                 """
             }
         }
