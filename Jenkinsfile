@@ -13,7 +13,8 @@ pipeline {
         }
         stage("stage => Build_Image") {
             steps {
-                sh "sudo docker image ls"
+                sh "sudo docker image ls && ls -l && sudo cat Dockerfile"
+                sh "docker build -t linuxbest531/python-application:${env.BUILD_NUMBER} ."
             }
         }
         stage("stage => Test_Container") {
