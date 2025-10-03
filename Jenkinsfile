@@ -23,16 +23,14 @@
             steps {
                 sh """
                 docker run --rm -i -p 5150:5150 linuxbest531/python-application:${env.BUILD_NUMBER}
-                sleep 5
-                docker ps
-                docker ps -a
+                sleep 10
                 """
             }
         }
         stage("Process => Deploy_Application") {
             steps {
                 echo script {
-                    docker.withRegistry('https://index.docker.io/v1/', "${env.DOCKER_AUTH}") {
+                    docker.withRegistry('https://index.docker.io/v1/', 'Dockerpass') {
                         dockerImage.push()
                     }
                 }
