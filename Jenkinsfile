@@ -11,27 +11,33 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/linux-best/Docker-application'
             }
         }
-        stage("stage => Build_Image") {
+        stage('Process => Build_Image') {
             steps {
-                sh "sudo docker image ls && ls -l && sudo cat Dockerfile"
+                script {
+                    dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}")
+                }
             }
         }
-        stage("stage => Test_Container") {
+
+        stage("Process => Test_Container") {
             steps {
                 sh """
-                sudo docker ps -a
-                sudo docker ps
+                docker ps
+                docker ps - a
                 """
             }
         }
-        stage("stage => Deploy_Application") {
+        stage("Process => Deploy_Application") {
             steps {
                 echo "Deploying .........."
             }
         }
     }
     post {
-        success {echo "Done !"}
+        success {
+            echo "Done !"
+            sh "docker system prune -af" // clearing the docker-workspace    
+        }
         failure {echo "Fuck !!"}
     }
 }
