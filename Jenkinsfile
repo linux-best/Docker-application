@@ -1,4 +1,4 @@
-pipeline {
+    pipeline {
     agent any
 
     environment { 
@@ -22,6 +22,8 @@ pipeline {
         stage("Process => Test_Container") {
             steps {
                 sh """
+                docker run --rm -it -p 5000:5000 linuxbest531/python-application:${env.BUILD_NUMBER}
+                sleep 5
                 docker ps
                 docker ps - a
                 """
@@ -29,7 +31,11 @@ pipeline {
         }
         stage("Process => Deploy_Application") {
             steps {
-                echo "Deploying .........."
+                echo script {
+                    docker.withRegistry('https://index.docker.io/v1/', "${env.DOCKER_AUTH}") {
+                        dockerImage.push()
+                    }
+                }
             }
         }
     }
