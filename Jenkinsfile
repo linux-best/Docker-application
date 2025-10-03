@@ -14,7 +14,6 @@ pipeline {
         stage("stage => Build_Image") {
             steps {
                 sh "sudo docker image ls && ls -l && sudo cat Dockerfile"
-                sh "docker build -f ../../repo_projects/Docker-application/Dockerfile -t linuxbest531/python-application:${env.BUILD_NUMBER} ."
             }
         }
         stage("stage => Test_Container") {
