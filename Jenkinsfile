@@ -25,7 +25,7 @@
                 docker run --rm -i -p 5150:5150 linuxbest531/python-application:${env.BUILD_NUMBER}
                 sleep 5
                 docker ps
-                docker ps - a
+                docker ps -a
                 """
             }
         }
