@@ -1,11 +1,10 @@
 pipeline {
     agent any
 
-    enviroment {
-        CONTAINER_ID = "1"
-        REPO_PROJECT = "http"
-        AUTH_PASS = credentials("dockerhub_credentials")
+    environment { 
+   	    DOCKER_AUTH = credentials('Dockerpass') 
     }
+
     stages {
         stage("stage => Checkout-SCM") {
             steps {
@@ -19,14 +18,16 @@ pipeline {
         }
         stage("stage => Test_Container") {
             steps {
-                """
+                sh """
                 sudo docker ps -a
                 sudo docker ps
                 """
             }
         }
         stage("stage => Deploy_Application") {
-            echo "Deploying .........."
+            steps {
+                echo "Deploying .........."
+            }
         }
     }
     post {
