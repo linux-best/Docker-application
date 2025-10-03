@@ -22,7 +22,7 @@
         stage("Process => Test_Container") {
             steps {
                 sh """
-                docker run --rm -i -p 5000:5000 linuxbest531/python-application:${env.BUILD_NUMBER}
+                docker run --rm -i -p 5150:5150 linuxbest531/python-application:${env.BUILD_NUMBER}
                 sleep 5
                 docker ps
                 docker ps - a
