@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-
+        VAR = sh(script: 'echo $?',returnStdout: true).trim()
     }
     
     stages {
@@ -27,7 +27,7 @@ pipeline {
         }
         stage('Push') {
             steps {
-                sh 'echo $?'
+                sh "echo ${env.VAR}"
             }
         }
     }
