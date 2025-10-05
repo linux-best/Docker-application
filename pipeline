@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         VAR = sh(script: 'echo $?',returnStdout: true).trim()
+        VAR_1 = credentials('Dockerpass_1')
     }
     
     stages {
@@ -18,15 +19,26 @@ pipeline {
         }
         stage('Test') {
             steps {
+                echo "Logging in -----> (Docker-hub Account) !"
+                script {
+                    def login_state = sh(script:"echo ${env.VAR_1} | docker login -u 'linuxbest531' --password-stdin",returnStatus:true).trim()
+                }
+                when { 
+                    expression {
+                        ${login_state} == 0        
+                    }
+                }
+                sh 'Test stage PASSED $$$$$$'
+            }
+        }
+        stage('Push') {
+            steps {
+                echo 'Pushing some commands for fun :)'
                 sh """
                 docker ps -a
                 docker ps
                 docker image ls
                 """
-            }
-        }
-        stage('Push') {
-            steps {
                 sh "echo ${env.VAR}"
             }
         }
