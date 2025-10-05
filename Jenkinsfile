@@ -16,6 +16,7 @@
                 script {
                     dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}")
                 }
+                sh "docker image ls"
             }
         }
 
