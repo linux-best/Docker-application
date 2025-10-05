@@ -32,11 +32,6 @@ pipeline {
             }
         }
         stage('Push') {
-            when {
-                expression {
-                    "${login_state}" == 0
-                }
-            }
             steps {
                 echo 'Pushing some commands for fun :)'
                 sh """
