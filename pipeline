@@ -23,15 +23,19 @@ pipeline {
                 script {
                     def login_state = sh(script:"echo ${env.VAR_1} | docker login -u 'linuxbest531' --password-stdin",returnStatus:true)
                 }
-            when { 
+                if ("${login_state}" == 0) {
+                    echo 'Test stage PASSED $$$$$$'
+                } else {
+                    error("Test failed => exit_status:${env.VAR_1}")
+                }
+            }
+        }
+        stage('Push') {
+            when {
                 expression {
                     "${login_state}" == 0
                 }
             }
-                sh 'Test stage PASSED $$$$$$'
-            }
-        }
-        stage('Push') {
             steps {
                 echo 'Pushing some commands for fun :)'
                 sh """
