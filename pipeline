@@ -21,7 +21,7 @@ pipeline {
             steps {
                 echo "Logging in -----> (Docker-hub Account) !"
                 script {
-                    def login_state = sh(script:"echo ${env.VAR_1} | docker login -u 'linuxbest531' --password-stdin",returnStatus:true).trim()
+                    def login_state = sh(script:"echo ${env.VAR_1} | docker login -u 'linuxbest531' --password-stdin",returnStatus:true)
                 }
                 when { 
                     expression {
