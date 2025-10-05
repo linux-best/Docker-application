@@ -28,7 +28,6 @@ pipeline {
         stage('Push') {
             steps {
                 sh 'echo $?'
-                }
             }
         }
     }
