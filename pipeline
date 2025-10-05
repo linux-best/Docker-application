@@ -8,27 +8,26 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/your-org/your-repo.git'
+                git branch: 'main', url: 'https://github.com/linux-best/Docker-application/'
             }
         }
         stage('Build') {
             steps {
-                script {
-                    dockerImage = docker.build("your-org/your-app:${env.BUILD_NUMBER}")
-                }
+                sh "ls -l && tree -a"
             }
         }
         stage('Test') {
             steps {
-                sh 'docker run --rm your-org/your-app:${env.BUILD_NUMBER} ./run-tests.sh'
+                sh """
+                docker ps -a
+                docker ps
+                docker image ls
+                """
             }
         }
         stage('Push') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                        dockerImage.push()
-                    }
+                sh 'echo $?'
                 }
             }
         }
