@@ -22,11 +22,12 @@ pipeline {
                 echo "Logging in -----> (Docker-hub Account) !"
                 script {
                     def login_state = sh(script:"echo ${env.VAR_1} | docker login -u 'linuxbest531' --password-stdin",returnStatus:true)
-                }
-                if ("${login_state}" == 0) {
-                    echo 'Test stage PASSED $$$$$$'
-                } else {
-                    error("Test failed => exit_status:${env.VAR_1}")
+                    
+                    if (login_state == 0) {
+                        echo 'Test stage PASSED $$$$$$'
+                    } else {
+                        error("Test failed => exit_status:${env.VAR_1}")
+                    }
                 }
             }
         }
