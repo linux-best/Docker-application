@@ -3,7 +3,7 @@
 
     environment { 
         APP_REPO = 'linuxbest531/python-application'
-        APP_NAME = 'python-app'
+        APP_NAME = "python-app-${env.BUILD_NUMBER}"
         PORT = '5000'
     }
 
@@ -25,7 +25,7 @@
         stage("Process => Test_Container") {
             steps {
                 sh """
-                docker run --rm -it -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
+                docker run --rm -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
                 curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
                 sleep 10
                 """
