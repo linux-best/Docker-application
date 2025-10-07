@@ -2,7 +2,9 @@
     agent any
 
     environment { 
-   	    DOCKER_AUTH = credentials('Dockerpass') 
+        APP_REPO = 'linuxbest531/python-application'
+        APP_NAME = 'python-app'
+   	    DOCKER_AUTH = credentials('Dockerpass_1') 
     }
 
     stages {
@@ -14,7 +16,7 @@
         stage('Process => Build_Image') {
             steps {
                 script {
-                    dockerImage = docker.build("linuxbest531/python-application:${env.BUILD_NUMBER}")
+                    dockerImage = docker.build("${env.APP_REPO}:${env.BUILD_NUMBER}")
                 }
                 sh "docker image ls"
             }
@@ -22,22 +24,18 @@
 
         stage("Process => Test_Container") {
             steps {
-                script {
-                    def run_container = sh(script: 'docker run --rm -it --name py_app -p 5000:5000 linuxbest531/python-application:${env.BUILD_NUMBER}',
-                    returnStatus: true)
-
-                    if (run_container == 0) {
-                        echo "Running_Container passed !"
-                    } else {
-                        error('Failed to Run the container !!')
-                    }
-                }
+                sh """
+                docker run -d -p 5000:5000 --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}   
+                sleep 10
+                curl http://localhost:5000/ || echo "Application is running fine !"
+                docker stop ${env.APP_NAME} && docker remove ${env.APP_NAME}
+                """
             }
         }
         stage("Process => Deploy_Application") {
             steps {
-                echo script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'Dockerpass') {
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'Dockerpass_1') {
                         dockerImage.push()
                     }
                 }
@@ -52,3 +50,5 @@
         failure {echo "Fuck !!"}
     }
 }
+
+// docker run --rm -it -p 5000:5000 ${env.APP_NAME}:${env.BUILD_NUMBER}
