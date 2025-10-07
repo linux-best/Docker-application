@@ -4,7 +4,6 @@
     environment { 
         APP_REPO = 'linuxbest531/python-application'
         APP_NAME = 'python-app'
-   	    DOCKER_AUTH = credentials('Dockerpass_1')
         PORT = '5000'
     }
 
