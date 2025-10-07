@@ -22,13 +22,16 @@
 
         stage("Process => Test_Container") {
             steps {
-                sh """
-                docker run -d --name py_app -p 5150:5150 linuxbest531/python-application:${env.BUILD_NUMBER}
-                docker ps -a
-                sleep 20
-                docker stop py_app
-                docker ps -a
-                """
+                script {
+                    def run_container = sh(script: 'docker run --rm -it --name py_app -p 5000:5000 linuxbest531/python-application:${env.BUILD_NUMBER}',
+                    returnStatus: true)
+
+                    if (run_container == 0) {
+                        echo "Running_Container passed !"
+                    } else {
+                        error('Failed to Run the container !!')
+                    }
+                }
             }
         }
         stage("Process => Deploy_Application") {
