@@ -4,7 +4,8 @@
     environment { 
         APP_REPO = 'linuxbest531/python-application'
         APP_NAME = 'python-app'
-   	    DOCKER_AUTH = credentials('Dockerpass_1') 
+   	    DOCKER_AUTH = credentials('Dockerpass_1')
+        PORT = '5000'
     }
 
     stages {
@@ -25,9 +26,9 @@
         stage("Process => Test_Container") {
             steps {
                 sh """
-                docker run -d -p 5000:5000 --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}   
+                docker run -d -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}   
                 sleep 10
-                curl http://localhost:5000/ || echo "Application is running fine !"
+                curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
                 docker stop ${env.APP_NAME} && docker remove ${env.APP_NAME}
                 """
             }
