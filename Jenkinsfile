@@ -21,31 +21,15 @@
                 sh "docker image ls"
             }
         }
-        stage("Process => Test_Container,Cleaning_workspace") {
-            stages {
-                stage('Test_Container') {
-                    steps {
-                        sh """
-                        docker run --rm -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
-                        curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
-                        sleep 20
-                        """
-                    }       
-                }
-                stage('Cleaning_workspace') {
-                    steps {
-                        script {
-                            pid = sh(script: "sudo lsof -t -i :${env.PORT}",returnStdout: true)
-                        }
-                        sh """
-                        sudo systemctl restart docker.socket docker.service 
-                        sudo systemctl status docker.socket docker.service
-                        sudo kill -9 ${pid}
-                        docker ps -a && docker image ls
-                        """
-                    }
-                }
-            }
+        stage("Process => Test_Container") {
+            steps {
+                sh """
+                docker run -d -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
+                curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
+                sleep 15
+                docker container stop ${env.APP_NAME}
+                """
+            }       
         }
         stage("Process => Deploy_Application") {
             steps {
