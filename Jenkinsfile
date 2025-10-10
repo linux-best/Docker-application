@@ -21,14 +21,27 @@
                 sh "docker image ls"
             }
         }
-
-        stage("Process => Test_Container") {
-            steps {
-                sh """
-                docker run --rm -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
-                curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
-                sleep 10
-                """
+        stage("Process => Test_Container,Cleaning_workspace") {
+            stages {
+                stage('Test_Container') {
+                    steps {
+                        sh """
+                        docker run --rm -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
+                        curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
+                        sleep 20
+                        """
+                    }       
+                }
+                stage('Cleaning_workspace') {
+                    steps {
+                        sh """
+                        sudo systemctl restart docker.socket docker.service 
+                        sudo systemctl status docker.socket docker.service
+                        sudo kill -9 $(sudo lsof -t -i :${env.PORT})
+                        docker ps -a && docker image ls
+                        """
+                    }
+                }
             }
         }
         stage("Process => Deploy_Application") {
