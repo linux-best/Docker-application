@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         VAR = sh(script: 'echo $?',returnStdout: true).trim()
-        VAR_1 = credentials('Dockerpass_1')
+        VAR_1 = credentials('Dockerpass')
     }
     
     stages {
