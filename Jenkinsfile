@@ -37,7 +37,7 @@
                         sh """
                         sudo systemctl restart docker.socket docker.service 
                         sudo systemctl status docker.socket docker.service
-                        sudo kill -9 $(sudo lsof -t -i :${env.PORT})
+                        sudo kill -9 $(sudo lsof -t -i :"${env.PORT}")
                         docker ps -a && docker image ls
                         """
                     }
