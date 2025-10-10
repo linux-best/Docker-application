@@ -35,7 +35,7 @@
                 stage('Cleaning_workspace') {
                     steps {
                         script {
-                            pid = sh(script: "sudo lsof -t -i :"${env.PORT}"",returnStdout: true)
+                            pid = sh(script: "sudo lsof -t -i :${env.PORT}",returnStdout: true)
                         }
                         sh """
                         sudo systemctl restart docker.socket docker.service 
