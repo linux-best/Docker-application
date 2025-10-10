@@ -28,7 +28,6 @@
                 docker run --rm -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
                 curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
                 sleep 10
-                docker container rm -f ${env.APP_NAME}
                 """
             }
         }
@@ -46,17 +45,28 @@
         success {
             echo "Done !"
             sh "docker system prune -af" // clearing the docker-workspace    
-        
-            // email
-        
-        }
+            script {
+                emailext(
+                    subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was failed",
+                    body: """
+                    Check the details at ${env.BUILD_URL}""",
+                    to: "amirmahdifhp@gmail.com"
+                )
+            }
+
+        } // email
         failure {
             echo "Fuck !!"
+            script {
+                emailext(
+                    subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was failed",
+                    body: """
+                    Check the details at ${env.BUILD_URL}""",
+                    to: "amirmahdifhp@gmail.com"
+                )
+            }
         
-            // email
-        
-        }
+        } // email
     }
 }
 
-// 
