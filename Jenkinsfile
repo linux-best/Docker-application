@@ -25,6 +25,7 @@
             steps {
                 sh """
                 docker run -d -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
+                sleep 5
                 curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
                 sleep 15
                 docker container stop ${env.APP_NAME}
