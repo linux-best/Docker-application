@@ -34,10 +34,13 @@
                 }
                 stage('Cleaning_workspace') {
                     steps {
+                        script {
+                            pid = sh(script: "sudo lsof -t -i :"${env.PORT}"",returnStdout: true)
+                        }
                         sh """
                         sudo systemctl restart docker.socket docker.service 
                         sudo systemctl status docker.socket docker.service
-                        sudo kill -9 $(sudo lsof -t -i :"${env.PORT}")
+                        sudo kill -9 ${pid}
                         docker ps -a && docker image ls
                         """
                     }
