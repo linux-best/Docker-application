@@ -30,7 +30,13 @@
                 sleep 15
                 docker container stop ${env.APP_NAME}
                 """
-            }       
+            }
+            stage ("Process => Security_Gate") {
+                steps {
+                    echo "Trivy scanning ............. !"
+                    // sh "<trivy-command>" and condition for sec-gate
+                }
+            }
         }
         stage("Process => Deploy_Application") {
             steps {
@@ -48,7 +54,7 @@
             sh "docker system prune -af" // clearing the docker-workspace    
             script {
                 emailext(
-                    subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was failed",
+                    subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was successful",
                     body: """
                     Check the details at ${env.BUILD_URL}""",
                     to: "amirmahdifhp@gmail.com"
