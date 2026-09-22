@@ -34,7 +34,7 @@
                 sleep 5
                 curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
                 sleep 15
-                docker container stop ${env.APP_NAME}
+                docker stop ${env.APP_NAME}
                 """
             }
         }
