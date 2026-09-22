@@ -33,10 +33,8 @@
                 docker run -d -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
                 sleep 5
                 curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
-                sleep 15
-                docker stop ${env.APP_NAME}
                 sleep 10
-                sudo docker container stop ${env.APP_NAME}
+                docker container stop ${env.APP_NAME} && docker container rm -f ${env.APP_NAME} || false
                 """
             }
         }
@@ -54,6 +52,8 @@
         success {
             echo "Done !"
             sh "docker rmi -f ${env.APP_REPO}:${env.BUILD_NUMBER}"
+            // sudo docker rmi -f $(sudo docker image ls | grep python-application | awk {'print $1'}) 2> /dev/null 
+            // sudo docker rmi -f $(ocker image ls -q '*/python-application') 2> /dev/null
             // sh "docker system prune -af" // clearing the docker-workspace    
             script {
                 emailext(
