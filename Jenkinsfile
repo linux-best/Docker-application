@@ -52,7 +52,7 @@
     post {
         success {
             echo "Done !"
-            sh "docker rmi ${env.APP_REPO}:${env.BUILD_NUMBER}"
+            sh "docker rmi -f ${env.APP_REPO}:${env.BUILD_NUMBER}"
             // sh "docker system prune -af" // clearing the docker-workspace    
             script {
                 emailext(
