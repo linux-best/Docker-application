@@ -1,0 +1,285 @@
+Console Output
+Download
+View as plain text
+
+Started by user javande
+Obtained Jenkinsfile from git https://github.com/linux-best/Docker-application/
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/lib/jenkins/workspace/Docker-pipeline
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/Docker-pipeline/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/linux-best/Docker-application/ # timeout=10
+Fetching upstream changes from https://github.com/linux-best/Docker-application/
+ > git --version # timeout=10
+ > git --version # 'git version 2.34.1'
+ > git fetch --tags --force --progress -- https://github.com/linux-best/Docker-application/ +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
+Checking out Revision 159d0a4a579164321672650c828f08df0324b999 (refs/remotes/origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 159d0a4a579164321672650c828f08df0324b999 # timeout=10
+Commit message: "Update ,Jenkinsfile"
+ > git rev-list --no-walk 28d8d154658e4384aef364321b500a442c42f974 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (stage => Checkout-SCM)
+[Pipeline] git
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/Docker-pipeline/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/linux-best/Docker-application # timeout=10
+Fetching upstream changes from https://github.com/linux-best/Docker-application
+ > git --version # timeout=10
+ > git --version # 'git version 2.34.1'
+ > git fetch --tags --force --progress -- https://github.com/linux-best/Docker-application +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/main^{commit} # timeout=10
+Checking out Revision 159d0a4a579164321672650c828f08df0324b999 (refs/remotes/origin/main)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f 159d0a4a579164321672650c828f08df0324b999 # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git branch -D main # timeout=10
+ > git checkout -b main 159d0a4a579164321672650c828f08df0324b999 # timeout=10
+Commit message: "Update ,Jenkinsfile"
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Process => Build_Image)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] isUnix
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] sh
++ docker build -t linuxbest531/python-application:19 .
+DEPRECATED: The legacy builder is deprecated and will be removed in a future release.
+            Install the buildx component to build images with BuildKit:
+            https://docs.docker.com/go/buildx/
+
+Sending build context to Docker daemon  196.6kB
+
+Step 1/7 : FROM python:3.10-slim
+ ---> f33084ee4250
+Step 2/7 : WORKDIR /app
+ ---> Running in 9042fe4e612b
+ ---> Removed intermediate container 9042fe4e612b
+ ---> 2d4b90226e11
+Step 3/7 : COPY app/requierments.txt .
+ ---> 3149bdfb9555
+Step 4/7 : RUN pip3 install --no-cache-dir -r requierments.txt
+ ---> Running in 357d221f4778
+Collecting flask
+  Downloading flask-3.1.3-py3-none-any.whl (103 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 103.4/103.4 kB 499.2 kB/s eta 0:00:00
+Collecting flask-socketio
+  Downloading flask_socketio-5.6.1-py3-none-any.whl (18 kB)
+Collecting redis
+  Downloading redis-8.1.0-py3-none-any.whl (560 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 560.6/560.6 kB 947.9 kB/s eta 0:00:00
+Collecting eventlet
+  Downloading eventlet-0.41.2-py3-none-any.whl (364 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 364.6/364.6 kB 765.3 kB/s eta 0:00:00
+Collecting click>=8.1.3
+  Downloading click-8.5.0-py3-none-any.whl (125 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 125.3/125.3 kB 479.0 kB/s eta 0:00:00
+Collecting markupsafe>=2.1.1
+  Downloading markupsafe-3.0.3-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (20 kB)
+Collecting werkzeug>=3.1.0
+  Downloading werkzeug-3.1.8-py3-none-any.whl (226 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 226.5/226.5 kB 262.8 kB/s eta 0:00:00
+Collecting blinker>=1.9.0
+  Downloading blinker-1.9.0-py3-none-any.whl (8.5 kB)
+Collecting jinja2>=3.1.2
+  Downloading jinja2-3.1.6-py3-none-any.whl (134 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 134.9/134.9 kB 206.4 kB/s eta 0:00:00
+Collecting itsdangerous>=2.2.0
+  Downloading itsdangerous-2.2.0-py3-none-any.whl (16 kB)
+Collecting python-socketio>=5.12.0
+  Downloading python_socketio-5.17.0-py3-none-any.whl (82 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 82.5/82.5 kB 196.5 kB/s eta 0:00:00
+Collecting async-timeout>=4.0.3
+  Downloading async_timeout-5.0.1-py3-none-any.whl (6.2 kB)
+Collecting dnspython>=1.15.0
+  Downloading dnspython-2.8.0-py3-none-any.whl (331 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 331.1/331.1 kB 183.0 kB/s eta 0:00:00
+Collecting greenlet>=1.0
+  Downloading greenlet-3.5.6-cp310-cp310-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (622 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 622.8/622.8 kB 216.7 kB/s eta 0:00:00
+Collecting python-engineio>=4.13.2
+  Downloading python_engineio-4.14.0-py3-none-any.whl (60 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 60.3/60.3 kB 110.0 kB/s eta 0:00:00
+Collecting bidict>=0.21.0
+  Downloading bidict-0.23.1-py3-none-any.whl (32 kB)
+Collecting simple-websocket>=0.10.0
+  Downloading simple_websocket-1.1.0-py3-none-any.whl (13 kB)
+Collecting wsproto
+  Downloading wsproto-1.3.2-py3-none-any.whl (24 kB)
+Collecting h11<1,>=0.16.0
+  Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+Installing collected packages: markupsafe, itsdangerous, h11, greenlet, dnspython, click, blinker, bidict, async-timeout, wsproto, werkzeug, redis, jinja2, eventlet, simple-websocket, flask, python-engineio, python-socketio, flask-socketio
+Successfully installed async-timeout-5.0.1 bidict-0.23.1 blinker-1.9.0 click-8.5.0 dnspython-2.8.0 eventlet-0.41.2 flask-3.1.3 flask-socketio-5.6.1 greenlet-3.5.6 h11-0.16.0 itsdangerous-2.2.0 jinja2-3.1.6 markupsafe-3.0.3 python-engineio-4.14.0 python-socketio-5.17.0 redis-8.1.0 simple-websocket-1.1.0 werkzeug-3.1.8 wsproto-1.3.2
+␛[91mWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv
+␛[0m␛[91m
+[notice] A new release of pip is available: 23.0.1 -> 26.2.1
+[notice] To update, run: pip install --upgrade pip
+␛[0m ---> Removed intermediate container 357d221f4778
+ ---> 1cb62a5812e9
+Step 5/7 : COPY app/ .
+ ---> 941de295732b
+Step 6/7 : EXPOSE 5000
+ ---> Running in 4bc139e37fe6
+ ---> Removed intermediate container 4bc139e37fe6
+ ---> fc5ff77a3dd7
+Step 7/7 : CMD [ "python3","application.py"]
+ ---> Running in d63fd6eb08a4
+ ---> Removed intermediate container d63fd6eb08a4
+ ---> b9e77f2fbdb0
+Successfully built b9e77f2fbdb0
+Successfully tagged linuxbest531/python-application:19
+[Pipeline] }
+[Pipeline] // withEnv
+Did you forget the `def` keyword? WorkflowScript seems to be setting a field named dockerImage (to a value of type Image) which could lead to memory leaks or other issues.
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] sh
++ docker image ls
+REPOSITORY                        TAG         IMAGE ID       CREATED                  SIZE
+linuxbest531/python-application   19          b9e77f2fbdb0   Less than a second ago   146MB
+python                            3.10-slim   f33084ee4250   3 days ago               122MB
+postgres                          alpine      58b15c23310d   16 months ago            278MB
+sonarqube                         latest      3be54dbc7ac1   16 months ago            1.23GB
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Process => Security_Gate)
+[Pipeline] echo
+Trivy scanning ............. !
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Process => Test_Container)
+[Pipeline] sh
++ docker run -d -p 5000:5000 --name python-app-19 linuxbest531/python-application:19
+91868b6d2737508947a805403fe551424a6be21d35517f1057f0cfee902421de
++ sleep 5
++ curl http://localhost:5000/
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0
+100    30  100    30    0     0   4327      0 --:--:-- --:--:-- --:--:--  5000
+Realtime chat api is running !+ echo App is running fine !
+App is running fine !
++ sleep 10
++ docker container stop python-app-19
+python-app-19
++ docker container rm -f python-app-19
+python-app-19
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Process => Deploy_Application)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withDockerRegistry
+Using the existing docker config file.
+Removing blacklisted property: auths
+$ docker login -u linuxbest531 -p ******** https://index.docker.io/v1/
+WARNING! Using --password via the CLI is insecure. Use --password-stdin.
+
+WARNING! Your credentials are stored unencrypted in '/var/lib/jenkins/workspace/Docker-pipeline@tmp/43a74cc8-001c-430d-a91d-20e6429bd0f4/config.json'.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/go/credential-store/
+
+Login Succeeded
+[Pipeline] {
+[Pipeline] isUnix
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] sh
++ docker tag linuxbest531/python-application:19 index.docker.io/linuxbest531/python-application:19
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] isUnix
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] sh
++ docker push index.docker.io/linuxbest531/python-application:19
+The push refers to repository [docker.io/linuxbest531/python-application]
+2f702a44e035: Preparing
+c68ff3118762: Preparing
+16c94105002c: Preparing
+3d7d8197d078: Preparing
+75d4270816ce: Preparing
+527ed4d7679c: Preparing
+6910fbb55ea4: Preparing
+a6dc765193a5: Preparing
+527ed4d7679c: Waiting
+6910fbb55ea4: Waiting
+a6dc765193a5: Waiting
+75d4270816ce: Layer already exists
+527ed4d7679c: Layer already exists
+6910fbb55ea4: Layer already exists
+a6dc765193a5: Layer already exists
+3d7d8197d078: Pushed
+16c94105002c: Pushed
+2f702a44e035: Pushed
+c68ff3118762: Pushed
+19: digest: sha256:04b26403929c88c03bfa3bf6dd932dadf56af14bb583b815d9e8c3d48eea7091 size: 1990
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withDockerRegistry
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] echo
+Done !
+[Pipeline] sh
++ docker rmi -f linuxbest531/python-application:19
+Untagged: linuxbest531/python-application:19
+Untagged: linuxbest531/python-application@sha256:04b26403929c88c03bfa3bf6dd932dadf56af14bb583b815d9e8c3d48eea7091
+Deleted: sha256:b9e77f2fbdb09e6bf1f0863f43c61e517ec3da359969558fe82a4b914559e596
+Deleted: sha256:fc5ff77a3dd70280a1dabef9b51250b88dbb89411f7fb8a84da656bb220a633e
+Deleted: sha256:941de295732be33d6d957a0705427e1935277f48862e78824cc6c2ff0d5c9355
+Deleted: sha256:bf6d99f168aa574b37ccc4c4bdff1ae9ee6ef5c3d74001fe1016d7338a56a27d
+Deleted: sha256:1cb62a5812e9ffcd564c117c1c824b422a18f666780ad5188b7d5c8df3b2a03c
+Deleted: sha256:4dbb000a4e32cd94a4b3a01f0fe1eff595b10abaa7a90713ba6eae17bed60403
+Deleted: sha256:3149bdfb95551a3fcbf52f11fe40e899fd472146bd6e5edcc05a15fb410e5d68
+Deleted: sha256:35da35fffa2d499f4fe39117aa56754f261785a26f0fb62077cb136932a8ef74
+Deleted: sha256:2d4b90226e11e92b0ba6e0b16c480751c44dd5c458c543ce6e4dfa5344b3dc9f
+Deleted: sha256:d420b69198cafe9a649ed37db1d2f2502dcfed75dd81f4f649eb32b4571918e9
+[Pipeline] script
+[Pipeline] {
+[Pipeline] emailext
+Sending email to: amirmahdifhp@gmail.com
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
