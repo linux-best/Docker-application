@@ -11,7 +11,7 @@
         stage("stage => Checkout-SCM") {
             steps {
                 git branch: 'main', url: 'https://github.com/linux-best/Docker-application'
-            }
+            } // hit for trivy repo scanning *
         }
         stage('Process => Build_Image') {
             steps {
@@ -19,6 +19,12 @@
                     dockerImage = docker.build("${env.APP_REPO}:${env.BUILD_NUMBER}")
                 }
                 sh "docker image ls"
+            }
+        }
+        stage ("Process => Security_Gate") {
+            steps {
+                echo "Trivy scanning ............. !"
+                // sh "<trivy-command>" and condition for sec-gate
             }
         }
         stage("Process => Test_Container") {
@@ -30,12 +36,6 @@
                 sleep 15
                 docker container stop ${env.APP_NAME}
                 """
-            }
-            stage ("Process => Security_Gate") {
-                steps {
-                    echo "Trivy scanning ............. !"
-                    // sh "<trivy-command>" and condition for sec-gate
-                }
             }
         }
         stage("Process => Deploy_Application") {
@@ -51,7 +51,8 @@
     post {
         success {
             echo "Done !"
-            sh "docker system prune -af" // clearing the docker-workspace    
+            sh "docker rmi ${env.APP_REPO}:${env.BUILD_NUMBER}"
+            // sh "docker system prune -af" // clearing the docker-workspace    
             script {
                 emailext(
                     subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was successful",
