@@ -13,8 +13,8 @@ pipeline {
         }
         stage('Trivy-Repository') {
             steps {
-                sh 'echo -e '"Trivy is searching for Vulnerabilities in REPOSITORY
-                    \n==========================SCANNING============================"'   
+                echo "Trivy is searching for Vulnerabilities in REPOSITORY"
+                echo "==========================SCANNING============================"   
             }
             
             parallel {
