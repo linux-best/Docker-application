@@ -8,16 +8,14 @@ pipeline {
     stages {
         stage('Checkout-SCM') {
             steps {
-
+                echo "stage Checkout-SCM passed"
             }
         }
-        stage('Trivy-Repository') {
-            steps {
+        stage('Trivy-Repository'){
+            parallel {
                 echo "Trivy is searching for Vulnerabilities in REPOSITORY"
                 echo "==========================SCANNING============================"   
-            }
-            
-            parallel {
+                
                 stage('REPO') {
                     steps {
                         var Test_1 = sh(script:"ping -c 4 8.8.8.8",stdout=true).trim()
