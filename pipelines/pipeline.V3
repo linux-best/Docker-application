@@ -24,7 +24,7 @@ pipeline {
                         stage('REPO') {
                             steps {
                                 script {
-                                    var Test_1 = sh(script:"ping -c 4 8.8.8.8",stdout=true).trim()
+                                    def Test_1 = sh(script:"ping -c 4 8.8.8.8",stdout=true).trim()
                                     echo "${Test_1}"
                                 }
                             }
@@ -32,7 +32,7 @@ pipeline {
                         stage('DOKERFILE') {
                             steps {
                                 script {
-                                    var Test_2 = sh(script:"ping -c 4 127.0.0.1",stdout=true).trim()
+                                    def Test_2 = sh(script:"ping -c 4 127.0.0.1",stdout=true).trim()
                                     echo "${Test_2}"
                                 }
                             }
