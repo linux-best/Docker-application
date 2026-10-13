@@ -32,27 +32,27 @@ pipeline {
         }
         stage('Build') {
             steps {
-		echo "stage Build passed"
+		        echo "stage Build passed"
             }
         }
         stage('Trivy-Image') { // sec-gate
             steps {
-		echo "stage Tricy_Image passed"
+		        echo "stage Tricy_Image passed"
             }
         }
         stage('Test') {
             steps {
-		echo "stage Test passed"
+		        echo "stage Test passed"
             }
         }
         stage('Trivy-Container') { // sec-gate
             steps {
-		echo "stage Trivy_Container passed"
+		        echo "stage Trivy_Container passed"
             }
         }
         stage('Deploy') {
             steps {
-		echo "stage Deploy passed"
+		        echo "stage Deploy passed"
             }
         }
     }
