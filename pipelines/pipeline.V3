@@ -16,7 +16,7 @@ pipeline {
                 stage('Initialize SCAN') {
                     steps {
                         echo "Trivy is searching for Vulnerabilities in REPOSITORY"
-                        echo "=========================="${env.SCAN_VAR}"============================"
+                        echo "==========================${env.SCAN_VAR}============================"
                     }
                 }
                 stage('Scanning') {
