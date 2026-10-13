@@ -1,8 +1,8 @@
 pipeline {
     agent any
 
-    environment {
-	// health-check // log-file // dovcker-var // git-repo
+    environment { // health-check // log-file // dovcker-var // git-repo
+	    SCAN_VAR = "SCANNING"
     }
 
     stages {
@@ -16,7 +16,7 @@ pipeline {
                 stage('Initialize SCAN') {
                     steps {
                         echo "Trivy is searching for Vulnerabilities in REPOSITORY"
-                        echo "==========================SCANNING============================"
+                        echo "=========================="${env.SCAN_VAR}"============================"
                     }
                 }
                 stage('Scanning') {
