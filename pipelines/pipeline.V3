@@ -60,7 +60,7 @@ pipeline {
     }
     post {
         always {
-            echo "Task Done $$$"
+            echo "Task Done ."
         }
         success {
             echo "Task was Successful !!"
