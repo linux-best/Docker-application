@@ -1,8 +1,8 @@
 pipeline {
     agent any
 
-    environment { // health-check // log-file // dovcker-var // git-repo
-
+    environment {
+	// health-check // log-file // dovcker-var // git-repo
     }
 
     stages {
@@ -34,27 +34,27 @@ pipeline {
         }
         stage('Build') {
             steps {
-
+		echo "stage Build passed"
             }
         }
         stage('Trivy-Image') { // sec-gate
             steps {
-
+		echo "stage Tricy_Image passed"
             }
         }
         stage('Test') {
             steps {
-
+		echo "stage Test passed"
             }
         }
         stage('Trivy-Container') { // sec-gate
             steps {
-
+		echo "stage Trivy_Container passed"
             }
         }
         stage('Deploy') {
             steps {
-
+		echo "stage Deploy passed"
             }
         }
     }
