@@ -1,14 +1,33 @@
 pipeline {
     agent any
 
-    environment { // health-check // log-file // dovcker-var // git-repo
-	    SCAN_VAR = "SCANNING"
+    environment { // health-check // log-file // dovcker-var * // git-repo
+        CMD = sh(script:"date +'%Y-%m-%d'",returnStdout: true).trim()
+        VAR_LOG = "pipelines/log_file.txt"
+        VAR_LOG_JSON = "pipelines/file_output_${env.CMD}.json"
+        Test_1 = sh (script:'ping -c 4 8.8.8.8', returnStatus: true).trim()
+        Test_2 = sh (script:'ping -c 4 140.82.121.4', returnStatus: true).trim()
+        APP_REPO = 'linuxbest531/python-application'
+        APP_NAME = "python-app-${env.BUILD_NUMBER}"
+        PORT = '5000'
+        GATE_STATUS = false
     }
 
     stages {
-        stage('Checkout-SCM') {
+        stage('Checkout-SCM') { // * expression
+        when {
+            expression {
+                    env.Test_1.result == 0 && env.Test_2.result == 0
+            }
+        }
             steps {
-                echo "stage Checkout-SCM passed"
+                dir('Ansible'){
+                    git branch: 'main', url: 'https://github.com/linux-best/ansible'
+                }
+                dir('Script') {
+                    git branch: 'main', url: 'https://github.com/linux-best/Docker-application'
+                }
+                echo "stage Checkout-SCM passed ...!"
             }
         }
         stage('Trivy-Repository'){
@@ -20,50 +39,98 @@ pipeline {
                     }
                 }
                 stage('Scanning') {
-                    parallel {   
+                    parallel {
                         stage('REPO') {
                             steps {
-                                script {
-                                    def Test_1 = sh (script:'ping -c 4 8.8.8.8', returnStdout: true).trim()
-                                    echo "${Test_1}"
+                                dir('Ansible'){
+                                    script {
+                                        def Scan_1 = sh (script:"trivy repo \
+                                                                --db-repository ghcr.io/aquasecurity/trivy-db \
+                                                                --format json \
+                                                                --output ${env.VAR_LOG_JSON}
+                                                                ${env.REPO_ANSIBLE}",returnStdout: true,returnStatus: true).trim()
+                                        if(Scan_1.result == 0) {
+                                            env.GATE_STATUS = true
+                                            echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
+                                        } else {
+                                            error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
+                                        }
+                                    }
                                 }
                             }
                         }
                         stage('DOKERFILE') {
                             steps {
-                                script {
-                                    def Test_2 = sh (script:'ping -c 4 127.0.0.1', returnStdout: true).trim()
-                                    echo "${Test_2}"
+                                dir('Docker'){
+                                    script {
+                                        def Scan_2 = sh (script:"trivy config \
+                                                        --severity HIGH,CRITICAL \
+                                                        --format json \
+                                                        --output ${env.VAR_LOG_JSON} \
+                                                        .",returnStdout: true ,returnStdout: true).trim()
+                                        if(Scan_1.result == 0) {
+                                            env.GATE_STATUS = true
+                                            echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
+                                        } else {
+                                            error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
+                                        }
+                                    }                
                                 }
                             }
                         }
-            }
+                    }
                 }
             }
         }
         stage('Build') {
             steps {
-		        echo "stage Build passed"
+                script {
+                    dockerImage = docker.build("${env.APP_REPO}:${env.BUILD_NUMBER}")
+                }
+                sh "docker image ls" // sh "docker images"   
+                echo "stage Build passed"
             }
         }
         stage('Trivy-Image') { // sec-gate
+        when {
+            expression {
+                env.GATE_STATUS == true
+            }
+        }
             steps {
-		        echo "stage Tricy_Image passed"
+                echo "stage Tricy_Image passed"
             }
         }
         stage('Test') {
             steps {
-		        echo "stage Test passed"
+                sh """
+                docker run -d -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
+                sleep 5
+                curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
+                sleep 10
+                docker container stop ${env.APP_NAME} && docker container rm -f ${env.APP_NAME} || false
+                """
+                echo "stage Test passed"
             }
         }
         stage('Trivy-Container') { // sec-gate
+        when {
+            expression {
+                env.GATE_STATUS == true
+            }
+        }
             steps {
-		        echo "stage Trivy_Container passed"
+                echo "stage Trivy_Container passed"
             }
         }
         stage('Deploy') {
             steps {
-		        echo "stage Deploy passed"
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'Dockerpass_1') {
+                        dockerImage.push()
+                    }
+                }
+                echo "stage Deploy passed"
             }
         }
     }
@@ -73,9 +140,34 @@ pipeline {
         }
         success {
             echo "Task was Successful !!"
+            sh "docker rmi -f ${env.APP_REPO}:${env.BUILD_NUMBER}"
+            // sudo docker rmi -f $(sudo docker image ls | grep python-application | awk {'print $1'}) 2> /dev/null 
+            // sudo docker rmi -f $(ocker image ls -q '*/python-application') 2> /dev/null
+            // sh "docker system prune -af" // clearing the docker-workspace    
+            script {
+                emailext(
+                    subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was successful",
+                    body: """
+                    Check the details at ${env.BUILD_URL}""",
+                    to: "amirmahdifhp@gmail.com"
+                )
+            }
         }
         failure {
             echo "Task was failed !!!"
+            script {
+                emailext(
+                    subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was failed",
+                    body: """
+                    Check the details at ${env.BUILD_URL}""",
+                    to: "amirmahdifhp@gmail.com"
+                )
+            }
         }
     }
 }
+
+
+// function in grrovy file for logging and attaching ut to email-notification .
+// multi json output files .
+// echo commands -> log-msg
