@@ -206,7 +206,7 @@ pipeline {
 
 
 // function in grrovy file for logging and attaching ut to email-notification .
-// multi json output files .
+// multi-json output files .
 // echo commands -> log-msg
 // trivy dashboard
 // create /reports directory
