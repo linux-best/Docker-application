@@ -2,11 +2,9 @@ pipeline {
     agent any
 
     environment { // [health-check , log-file , dovcker-var , git-repo] *
-        CMD = sh(script:"date +'%Y-%m-%d'",returnStdout: true).trim()
-        VAR_LOG = "pipelines/log_file.txt"
-        VAR_LOG_JSON = "pipelines/file_output_${env.CMD}.json"
-        Test_1 = sh (script:'ping -c 4 8.8.8.8', returnStatus: true).trim()
-        Test_2 = sh (script:'ping -c 4 140.82.121.4', returnStatus: true).trim()
+        CMD = sh(script:"date '+%F %T'",returnStdout: true).trim()
+        VAR_LOG = "Reports_${env.CMD}"
+        REPO_ANSIBLE = 'https://github.com/repo/ansible'
         APP_REPO = 'linuxbest531/python-application'
         APP_NAME = "python-app-${env.BUILD_NUMBER}"
         PORT = '5000'
@@ -14,18 +12,37 @@ pipeline {
     }
 
     stages {
+        stage('Test_figure') {
+            steps {
+                script {
+                    Test_1 = sh (script:'ping -c 4 8.8.8.8', returnStdout: true).trim()
+                    echo "connection result : "{Test_1}
+                    Test_2 = sh (script:'ping -c 4 140.82.121.4', returnStatus: true).trim()
+                    echo "connection result : "{Test_2}
+                    Test_3 = sh(script:'curl --connection-timeout 5 \
+                                        --silent --show-error \
+                                        --output /dev/null \
+                                        http://github.com/ ',returnStatus:true)
+                }
+            }
+        }   
         stage('Checkout-SCM') {
             when {
                 expression {
-                        env.Test_1.result == 0 && env.Test_2.result == 0
+                        env.Test_1 == 0 && env.Test_2 == 0 // [env.Test_1.result == 0 && env.Test_2.result == 0]
                 }
             }
             steps {
+                script{
+                    def log_1 = script_1.logmsg("info","pipeline started","stage =>(checkout_SCM)")
+                }
                 dir('Ansible'){
-                    git branch: 'main', url: 'https://github.com/linux-best/ansible'
+                    sh "mkdir -p ${env.VAR_LOG}"
+                    git branch: 'main', url: "${env.REPO_ANSIBLE}"
                 }
                 dir('Script') {
-                    git branch: 'main', url: 'https://github.com/linux-best/Docker-application'
+                    sh "mkdir -p ${env.VAR_LOG}"
+                    git branch: 'main', url: 'https://github.com/repo/Docker-application'
                 }
                 echo "stage Checkout-SCM passed ...!"
             }
@@ -40,14 +57,16 @@ pipeline {
                 }
                 stage('Configuration_Scan') {
                     steps {
-                        script {
-                            def Scan_ansible = sh (script:"trivy config \
-                                                                --misconfig-scanners ansible \
-                                                                --format json \
-                                                                --output ${env.VAR_LOG_JSON} \
-                                                                ." ,returnStatus: true).trim()
+                        dir('Ansible'){
+                            script {
+                                env.Scan_ansible = sh (script:"trivy config \
+                                                                    --misconfig-scanners ansible \
+                                                                    --format json \
+                                                                    --output ${env.VAR_LOG}/Configuration_Scan.json \
+                                                                    ." ,returnStatus: true)
+                            }
                         }
-                        echo "Stage onfiguration_Scan passed ! [condition_PASSED] => Scanning"
+                        echo "Stage Configuration_Scan passed ! [condition_PASSED] => Scanning"
                     }
                 }
                 stage('Scanning') {
@@ -59,19 +78,20 @@ pipeline {
                                         def Scan_1 = sh (script:"trivy repo \
                                                                 --db-repository ghcr.io/aquasecurity/trivy-db \
                                                                 --format json \
-                                                                --output ${env.VAR_LOG_JSON}
-                                                                ${env.REPO_ANSIBLE}" ,returnStatus: true).trim()
-                                        if(Scan_1 == 0 && Scan_ansible == 0) {
-                                            env.GATE_STATUS = true
+                                                                --output ${env.VAR_LOG}/REPO.json \
+                                                                ${env.REPO_ANSIBLE}" ,returnStatus: true)
+                                        if(Scan_1 == 0 && ${env.Scan_ansible}) {
+                                            ${env.GATE_STATUS} = true
                                             echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
                                         } else {
+                                            ${env.GATE_STATUS} = false
                                             error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
                                         }
                                     }
                                 }
                             }
                         }
-                        stage('DOKERFILE') {
+                        stage('DOCKERFILE') {
                             steps {
                                 dir('Docker'){
                                     script {
@@ -80,12 +100,13 @@ pipeline {
                                                         --scanners vuln,secret,misconfig \
                                                         --format json \
                                                         --exit-code 1 \
-                                                        --output ${env.VAR_LOG_JSON} \
-                                                        . ",returnStdout: true ,).trim() // *******
-                                        if(Scan_1 == 0) {
-                                            env.GATE_STATUS = true
+                                                        --output ${env.VAR_LOG}/DOCKERFILE.json \
+                                                        . ",returnStatus: true) // *******
+                                        if(Scan_2 == 0) {
+                                            ${env.GATE_STATUS} = true
                                             echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
                                         } else {
+                                            ${env.GATE_STATUS} = false
                                             error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
                                         }
                                     }                
@@ -108,7 +129,7 @@ pipeline {
         stage('Trivy_Image') { // sec-gate
             when {
                 expression {
-                    env.GATE_STATUS == true
+                    ${env.GATE_STATUS} = true
                 }
             }
             stages {
@@ -120,19 +141,22 @@ pipeline {
                 }
                 stage('Image_Scan') {
                     steps {
-                        script {
-                            def Scan_3 = sh (script:"trivy image \
-                                                    --severity HIGH,CRITICAL \
-                                                    --format json \
-                                                    --exit-code 1 \
-                                                    --scanners vuln,secret,misconfig \
-                                                    --output ${env.VAR_LOG_JSON} \
-                                                    ${env.APP_REPO}:${env.BUILD_NUMBER}", returnStatus:true).trim()
-                            if(Scan_3 == 0) {
-                                env.GATE_STATUS = true
-                                echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
-                            } else {
-                                error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
+                        dir('Docker') {
+                            script {
+                                def Scan_3 = sh (script:"trivy image \
+                                                        --severity HIGH,CRITICAL \
+                                                        --format json \
+                                                        --exit-code 1 \
+                                                        --scanners vuln,secret,misconfig \
+                                                        --output ${env.VAR_LOG}/Image_Scan.json \
+                                                        ${env.APP_REPO}:${env.BUILD_NUMBER}", returnStatus:true)
+                                if(Scan_3 == 0) {
+                                    ${env.GATE_STATUS} = true
+                                    echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
+                                } else {
+                                    ${env.GATE_STATUS} = false
+                                    error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
+                                }
                             }
                         }
                         echo "stage trivy image passed"
@@ -140,12 +164,32 @@ pipeline {
                 }
             }
         }
-        stage('Test') {
+        stage('Test') { // // curl --fail-with-body http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
             steps {
                 sh """
-                docker run -d -p ${env.PORT}:${env.PORT} --name ${env.APP_NAME} ${env.APP_REPO}:${env.BUILD_NUMBER}
+                docker run -d \
+                -p ${env.PORT}:${env.PORT} \
+                --name ${env.APP_NAME} \
+                ${env.APP_REPO}:${env.BUILD_NUMBER}
                 sleep 5
-                curl http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
+
+                index=1
+                counter=5
+
+                while [ $index -le $counter ]
+                do
+                        if curl --connect-timeout 3 \
+                        http://github.com/ --output /dev/null
+                        then
+                                echo "App is running fine"
+                                exit 0
+                        else
+                                echo "CHECKING FAILED   !" && sleep 2
+                                x=$((x+1))
+                        fi
+                done
+                echo "App isn't running fine :(" && exit 1
+                
                 sleep 10
                 docker container stop ${env.APP_NAME} && docker container rm -f ${env.APP_NAME} || false
                 """
@@ -166,7 +210,7 @@ pipeline {
     post {
         always {
             sh "curl \
-                -u javande:am12243648607080 \
+                -u user:password \
                 -i -H 'Accept:application/json' \
                 --output log_output.txt \
                 ${JENKINS_URL}/job/${JOB_NAME}/lastBuild/consoleText
@@ -185,7 +229,7 @@ pipeline {
                     subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was successful",
                     body: """
                     Check the details at ${env.BUILD_URL}""",
-                    to: "amirmahdifhp@gmail.com"
+                    to: "email@gmail.com"
                 )
             }
         }
@@ -197,7 +241,7 @@ pipeline {
                     subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was failed",
                     body: """
                     Check the details at ${env.BUILD_URL}""",
-                    to: "amirmahdifhp@gmail.com"
+                    to: "email@gmail.com"
                 )
             }
         }
@@ -207,6 +251,8 @@ pipeline {
 
 // function in grrovy file for logging and attaching ut to email-notification .
 // multi-json output files .
-// echo commands -> log-msg
+// echo commands -> log-msg on script fail part 
 // trivy dashboard
 // create /reports directory
+
+
