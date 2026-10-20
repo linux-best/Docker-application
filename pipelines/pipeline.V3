@@ -33,7 +33,7 @@ pipeline {
                 }
             }
             steps {
-                script{
+                script{ // important **
                     def log_1 = script_1.logmsg("info","pipeline started","stage =>(checkout_SCM)")
                 }
                 dir('Ansible'){
@@ -75,18 +75,14 @@ pipeline {
                             steps {
                                 dir('Ansible'){
                                     script {
+                                        env.resultStatus = [:]
+
                                         def Scan_1 = sh (script:"trivy repo \
                                                                 --db-repository ghcr.io/aquasecurity/trivy-db \
                                                                 --format json \
                                                                 --output ${env.VAR_LOG}/REPO.json \
                                                                 ${env.REPO_ANSIBLE}" ,returnStatus: true)
-                                        if(Scan_1 == 0 && ${env.Scan_ansible}) {
-                                            ${env.GATE_STATUS} = true
-                                            echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
-                                        } else {
-                                            ${env.GATE_STATUS} = false
-                                            error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
-                                        }
+                                        env.resultStatus['REPO'] = (Scan_1 == 0 && env.Scan_ansible?.toBoolean())
                                     }
                                 }
                             }
@@ -102,15 +98,21 @@ pipeline {
                                                         --exit-code 1 \
                                                         --output ${env.VAR_LOG}/DOCKERFILE.json \
                                                         . ",returnStatus: true) // *******
-                                        if(Scan_2 == 0) {
-                                            ${env.GATE_STATUS} = true
-                                            echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
-                                        } else {
-                                            ${env.GATE_STATUS} = false
-                                            error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
-                                        }
+                                        env.resultStatus['DOCKERFILE'] = (Scan_2 == 0)
                                     }                
                                 }
+                            }
+                        }
+                    }
+                }
+                stage('Conclution_Gate') {
+                    steps {
+                        script {
+                            env.GATE_STATUS = resultStatus.values().every { it }
+                            if(!env.GATE_STATUS?.toBoolean()) {
+                                echo "SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}"
+                            } else {
+                                echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
                             }
                         }
                     }
@@ -129,7 +131,8 @@ pipeline {
         stage('Trivy_Image') { // sec-gate
             when {
                 expression {
-                    ${env.GATE_STATUS} = true
+                    env.GATE_STATUS == true
+                    // env.GATE_STATUS?.toBoolean() == true  (if pre-condition fails)
                 }
             }
             stages {
@@ -150,12 +153,14 @@ pipeline {
                                                         --scanners vuln,secret,misconfig \
                                                         --output ${env.VAR_LOG}/Image_Scan.json \
                                                         ${env.APP_REPO}:${env.BUILD_NUMBER}", returnStatus:true)
-                                if(Scan_3 == 0) {
-                                    ${env.GATE_STATUS} = true
-                                    echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
-                                } else {
-                                    ${env.GATE_STATUS} = false
+                                env.resultStatus.clear()
+                                assert env.resultStatus == [:]
+                                env.resultStatus['Image_Scan'] = (Scan_3.toBoolean() == true) // bole stay bole in local variable 
+                                env.GATE_STATUS = resultStatus.values() { it }                // but in env one you need to use "?"
+                                if(!GATE_STATUS) {
                                     error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
+                                } else {
+                                    echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
                                 }
                             }
                         }
@@ -164,8 +169,12 @@ pipeline {
                 }
             }
         }
-        stage('Test') { // // curl --fail-with-body http://localhost:${env.PORT}/ && echo "App is running fine !" || echo "App isn't running fine !!"
-            steps {
+        stage('Test') { // curl --fail-with-body http://localhost:${env.PORT}/ 
+                        // && 
+                        // echo "App is running fine !"          <= BACKUP-COMMAND = it would provide the same test service (HTTP-reachability)
+                        // || 
+                        // echo "App isn't running fine !!"
+            steps {    
                 sh """
                 docker run -d \
                 -p ${env.PORT}:${env.PORT} \
