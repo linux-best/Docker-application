@@ -11,18 +11,32 @@ pipeline {
         GATE_STATUS = false
     }
 
-    stages {
+    stages { 
         stage('Test_figure') {
+            environment {
+                // putting some endpoits that are critical for us to have connection with them always . 
+                IP_ADD_1 = '8.8.8.8'
+                IP_ADD_2 = '140.82.121.4'
+            }
             steps {
                 script {
-                    Test_1 = sh (script:'ping -c 4 8.8.8.8', returnStdout: true).trim()
-                    echo "connection result : "{Test_1}
-                    Test_2 = sh (script:'ping -c 4 140.82.121.4', returnStatus: true).trim()
-                    echo "connection result : "{Test_2}
-                    Test_3 = sh(script:'curl --connection-timeout 5 \
-                                        --silent --show-error \
-                                        --output /dev/null \
-                                        http://github.com/ ',returnStatus:true)
+                    try {
+                        Test_1 = sh (script:"ping -c 4 ${env.IP_ADD_1}", returnStatus: true)
+                        echo "connection -> ${env.IP_ADD_1} - exit : ${Test_1}"
+                        Test_2 = sh (script:"ping -c 4 ${env.IP_ADD_2}", returnStatus: true)
+                        echo "connection -> ${env.IP_ADD_2} - exit : ${Test_2}"
+                        Test_3 = sh(script:'curl --connect-timeout 5 \
+                                            --silent --show-error \
+                                            --output /dev/null \
+                                            http://github.com/ ',returnStatus:true)
+                    } catch(Exception ex) {
+                        println('An error CORRUPTED the pipeline')
+                        echo "Exception : ${ex.getMessage()}"
+                        sh 'resolvectl flush-caches' // => clearing DNS-cach
+                        error('Build has FAILED')
+                    } finally {
+                        echo 'moving on to stage => Checkout-SCM'
+                    }
                 }
             }
         }   
