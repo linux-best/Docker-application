@@ -21,11 +21,13 @@ pipeline {
             steps {
                 script {
                     try {
-                        Test_1 = sh (script:"ping -c 4 ${env.IP_ADD_1}", returnStatus: true)
-                        echo "connection -> ${env.IP_ADD_1} - exit : ${Test_1}"
-                        Test_2 = sh (script:"ping -c 4 ${env.IP_ADD_2}", returnStatus: true)
-                        echo "connection -> ${env.IP_ADD_2} - exit : ${Test_2}"
-                        Test_3 = sh(script:'curl --connect-timeout 5 \
+                        def Test_1 = sh (script:"ping -c 4 ${env.IP_ADD_1}", returnStatus: true)
+                        // Result_1 = (Test_1 == 0) ? true : false
+                        echo "connection -> ${env.IP_ADD_1} - Health_Checked : ${(Test_1 == 0) ? true : false}" // Resukt_1
+                        def Test_2 = sh (script:"ping -c 4 ${env.IP_ADD_2}", returnStatus: true)
+                        // Result_1 = (Test_1 == 0) ? true : false
+                        echo "connection -> ${env.IP_ADD_1} - Health_Checked : ${(Test_2 == 0) ? true : false}" // Resukt_2
+                        def Test_3 = sh(script:'curl --connect-timeout 5 \
                                             --silent --show-error \
                                             --output /dev/null \
                                             http://github.com/ ',returnStatus:true)
@@ -65,7 +67,7 @@ pipeline {
             stages {
                 stage('Initialize SCAN') {
                     steps {
-                        echo "TRIVY => [vulerability scanning] - REPOSITORY\n"
+                        echo "TRIVY => [vulnerability scanning] - REPOSITORY\n"
                         echo "==S==C==A==N==${env.REPO_ANSIBLE}=R==E==P==O==!=="
                     }
                 }
@@ -76,7 +78,7 @@ pipeline {
                                 env.Scan_ansible = sh (script:"trivy config \
                                                                     --misconfig-scanners ansible \
                                                                     --format json \
-                                                                    --output ${env.VAR_LOG}/Configuration_Scan.json \
+                                                                    --output ../${env.VAR_LOG}/Configuration_Scan.json \
                                                                     ." ,returnStatus: true)
                             }
                         }
@@ -94,7 +96,7 @@ pipeline {
                                         def Scan_1 = sh (script:"trivy repo \
                                                                 --db-repository ghcr.io/aquasecurity/trivy-db \
                                                                 --format json \
-                                                                --output ${env.VAR_LOG}/REPO.json \
+                                                                --output ../${env.VAR_LOG}/REPO.json \
                                                                 ${env.REPO_ANSIBLE}" ,returnStatus: true)
                                         env.resultStatus['REPO'] = (Scan_1 == 0 && env.Scan_ansible?.toBoolean())
                                     }
@@ -110,7 +112,7 @@ pipeline {
                                                         --scanners vuln,secret,misconfig \
                                                         --format json \
                                                         --exit-code 1 \
-                                                        --output ${env.VAR_LOG}/DOCKERFILE.json \
+                                                        --output ../${env.VAR_LOG}/DOCKERFILE.json \
                                                         . ",returnStatus: true) // *******
                                         env.resultStatus['DOCKERFILE'] = (Scan_2 == 0)
                                     }                
@@ -119,7 +121,7 @@ pipeline {
                         }
                     }
                 }
-                stage('Conclution_Gate') {
+                stage('Conclusion_Gate') {
                     steps {
                         script {
                             env.GATE_STATUS = resultStatus.values().every { it }
@@ -165,12 +167,12 @@ pipeline {
                                                         --format json \
                                                         --exit-code 1 \
                                                         --scanners vuln,secret,misconfig \
-                                                        --output ${env.VAR_LOG}/Image_Scan.json \
+                                                        --output ../${env.VAR_LOG}/Image_Scan.json \
                                                         ${env.APP_REPO}:${env.BUILD_NUMBER}", returnStatus:true)
-                                env.resultStatus.clear()
+                                env.resultStatus.pop()
                                 assert env.resultStatus == [:]
-                                env.resultStatus['Image_Scan'] = (Scan_3.toBoolean() == true) // bole stay bole in local variable 
-                                env.GATE_STATUS = resultStatus.values() { it }                // but in env one you need to use "?"
+                                env.resultStatus['Image_Scan'] = (Scan_3 == 0) // bole stay bole in local variable 
+                                env.GATE_STATUS = resultStatus.collect { it.value() }                // but in env one you need to use "?"
                                 if(!GATE_STATUS) {
                                     error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
                                 } else {
@@ -277,5 +279,14 @@ pipeline {
 // echo commands -> log-msg on script fail part 
 // trivy dashboard
 // create /reports directory
-
-
+// ====================================================================================
+//sh """
+//index = ${Scan_2}
+//cou
+//if [ $index -eq $count ] 
+//then
+//    echo "Scan_Configuration was successful"
+//else
+//    echo "Scan_Configuration was failed"
+//fi
+//"""
