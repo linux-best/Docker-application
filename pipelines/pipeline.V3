@@ -2,16 +2,21 @@ pipeline {
     agent any
 
     environment { // [health-check , log-file , dovcker-var , git-repo] *
-        CMD = sh(script:"date '+%F %T'",returnStdout: true).trim()
-        VAR_LOG = "Reports_${env.CMD}"
+        CMD          = sh(script:"date '+%F %T'",returnStdout: true).trim()
+        VAR_LOG      = "Reports_${env.CMD}"
         REPO_ANSIBLE = 'https://github.com/repo/ansible'
-        APP_REPO = 'linuxbest531/python-application'
-        APP_NAME = "python-app-${env.BUILD_NUMBER}"
-        PORT = '5000'
-        GATE_STATUS = false
+        APP_REPO     = 'linuxbest531/python-application'
+        APP_NAME     = "python-app-${env.BUILD_NUMBER}"
+        PORT         = '5000'
+        GATE_STATUS  = false
     }
 
-    stages { 
+    stages {
+        stage("Node Info") {
+            steps {
+                echo "Node name $NODE_NAME and the labels: $NODE_LABELS"
+            }
+        }
         stage('Test_figure') {
             environment {
                 // putting some endpoits that are critical for us to have connection with them always . 
@@ -20,24 +25,29 @@ pipeline {
             }
             steps {
                 script {
+                    def lst_map = [:]
+                    lst_map[env.IP_ADD_1] = false
+                    lst_map[env.IP_ADD_2] = false
                     try {
-                        def Test_1 = sh (script:"ping -c 4 ${env.IP_ADD_1}", returnStatus: true)
-                        // Result_1 = (Test_1 == 0) ? true : false
-                        echo "connection -> ${env.IP_ADD_1} - Health_Checked : ${(Test_1 == 0) ? true : false}" // Resukt_1
-                        def Test_2 = sh (script:"ping -c 4 ${env.IP_ADD_2}", returnStatus: true)
-                        // Result_1 = (Test_1 == 0) ? true : false
-                        echo "connection -> ${env.IP_ADD_1} - Health_Checked : ${(Test_2 == 0) ? true : false}" // Resukt_2
-                        def Test_3 = sh(script:'curl --connect-timeout 5 \
-                                            --silent --show-error \
-                                            --output /dev/null \
-                                            http://github.com/ ',returnStatus:true)
+                        def results = lst_map.collect { ip,status ->
+                            Test_Connection(ip)
+                        }
+                        env.Gate_Connection = results.every { it }
+                        print(env.Gate_Connection.getClass())
+                        sh '''
+                        curl --connect-timeout 5 \
+                            --silent --show-error \
+                            --output /dev/null \
+                            http://github.com/
+                        '''
+                        println('moving on to stage => Checkout-SCM')
                     } catch(Exception ex) {
                         println('An error CORRUPTED the pipeline')
                         echo "Exception : ${ex.getMessage()}"
                         sh 'resolvectl flush-caches' // => clearing DNS-cach
                         error('Build has FAILED')
                     } finally {
-                        echo 'moving on to stage => Checkout-SCM'
+                        echo 'Exception Checking DONE !'
                     }
                 }
             }
@@ -45,7 +55,7 @@ pipeline {
         stage('Checkout-SCM') {
             when {
                 expression {
-                        env.Test_1 == 0 && env.Test_2 == 0 // [env.Test_1.result == 0 && env.Test_2.result == 0]
+                    (env.Gate_Connection.toBoolean()) == true
                 }
             }
             steps {
@@ -272,7 +282,12 @@ pipeline {
         }
     }
 }
-
+def Test_Connection(String IP){
+    def Test = sh (script:"ping -c 4 $IP", returnStatus: true).toInteger()
+    Boolean Result = (Test == 0) ? true : false
+    echo "connection -> $IP - Health_Checked : ${Result}"
+    return Result
+}
 
 // function in grrovy file for logging and attaching ut to email-notification .
 // multi-json output files .
