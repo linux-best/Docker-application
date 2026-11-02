@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     environment { // [health-check , log-file , dovcker-var , git-repo] *
         CMD          = sh(script:"date '+%F %T'",returnStdout: true).trim()
         VAR_LOG      = "Reports_${env.CMD}"
@@ -8,12 +12,13 @@ pipeline {
         APP_REPO     = 'linuxbest531/python-application'
         APP_NAME     = "python-app-${env.BUILD_NUMBER}"
         PORT         = '5000'
-        GATE_STATUS  = false
+        GATE_STATUS  = false 
     }
 
     stages {
         stage("Node Info") {
             steps {
+                cleanWs()
                 echo "Node name $NODE_NAME and the labels: $NODE_LABELS"
             }
         }
@@ -201,7 +206,7 @@ pipeline {
                         // || 
                         // echo "App isn't running fine !!"
             steps {    
-                sh """
+                sh '''
                 docker run -d \
                 -p ${env.PORT}:${env.PORT} \
                 --name ${env.APP_NAME} \
@@ -220,21 +225,27 @@ pipeline {
                                 exit 0
                         else
                                 echo "CHECKING FAILED   !" && sleep 2
-                                x=$((x+1))
+                                index=$((index+1))
                         fi
                 done
                 echo "App isn't running fine :(" && exit 1
                 
                 sleep 10
                 docker container stop ${env.APP_NAME} && docker container rm -f ${env.APP_NAME} || false
-                """
+                '''
                 echo "stage Test passed"
             }
         }
         stage('Deployment') {
             steps {
-                script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'Dockerpass_1') {
+                withCredentials([string(
+                    credentialsId : 'Dockerpass' ,
+                    variable : 'PASS_KEY'    
+                )])
+                sh "echo ${PASS_KEY} | docker login -u 'linuxbest531' --password-stdin" // just to specifing the authentication so that ,
+                                                                                        // the push process doesn't fail ,                
+                script {                                                                // or take longer time for the perpuse of authenticating .
+                    docker.withRegistry('https://index.docker.io/v1/', "Docker_Auth_Keys") {
                         dockerImage.push()
                     }
                 }
@@ -243,24 +254,36 @@ pipeline {
         }
     }
     post {
-        always {
+        always { 
+            // Credentials managment (SECURITY)
+            withCredentials([usernamePassword(
+                credentialsId : 'JenkinsPass' ,
+                usernameVariable : 'username' ,
+                passwordVariable : 'password'
+            )])
+            // Capturing the LATEST Report
             sh "curl \
-                -u user:password \
+                -u ${username}:${password} \
                 -i -H 'Accept:application/json' \
                 --output log_output.txt \
-                ${JENKINS_URL}/job/${JOB_NAME}/lastBuild/consoleText
-                "
+                ${JENKINS_URL}/job/${JOB_NAME}/lastBuild/consoleText"
+            // Cleaning the WORKSPACE
+            cleanWs(
+                cleanWhenNotBuilt: false,
+                deleteDirs: true,
+                disableDeferredWipeout: true,
+                notFailBuild: true,
+                patterns : [[pattern:'**/*.json',type:'INCLUDE'],
+                            [pattern: 'log_output.txt',type:'EXCLUDE']]
+            )
             echo "Task Done ."
         }
         success {
             echo "Task was Successful !!"
-            sh "docker rmi -f ${env.APP_REPO}:${env.BUILD_NUMBER}"
-            // sudo docker rmi -f $(sudo docker image ls | grep python-application | awk {'print $1'}) 2> /dev/null 
-            // sudo docker rmi -f $(docker image ls -q '*/python-application') 2> /dev/null
-            // sh "docker system prune -af" // clearing the docker-workspace [for important just testing workspace(capacity-matters)]    
             script {
+                Cleanup()
                 emailext(
-                    attachmentsPattern: '*.txt',            
+                    attachmentsPattern: 'log_output.txt',            
                     subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was successful",
                     body: """
                     Check the details at ${env.BUILD_URL}""",
@@ -271,8 +294,9 @@ pipeline {
         failure {
             echo "Task was failed !!!"
             script {
+                Cleanup()
                 emailext(
-                    attachmentsPattern: 'log.txt',
+                    attachmentsPattern: 'log_output.txt',
                     subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was failed",
                     body: """
                     Check the details at ${env.BUILD_URL}""",
@@ -282,12 +306,20 @@ pipeline {
         }
     }
 }
+def Cleanup() {
+    sh "docker rmi -f ${env.APP_REPO}:${env.BUILD_NUMBER}"
+    // sudo docker rmi -f $(sudo docker image ls | grep python-application | awk {'print $1'}) 2> /dev/null 
+    // sudo docker rmi -f $(docker image ls -q '*/python-application') 2> /dev/null
+    // sh "docker system prune -af" // clearing the docker-workspace [for important just testing workspace(capacity-matters)]    
+
+}
 def Test_Connection(String IP){
     def Test = sh (script:"ping -c 4 $IP", returnStatus: true).toInteger()
     Boolean Result = (Test == 0) ? true : false
     echo "connection -> $IP - Health_Checked : ${Result}"
     return Result
 }
+
 
 // function in grrovy file for logging and attaching ut to email-notification .
 // multi-json output files .
