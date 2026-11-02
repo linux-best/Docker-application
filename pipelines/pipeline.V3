@@ -157,7 +157,7 @@ pipeline {
         stage('Trivy_Image') { // sec-gate
             when {
                 expression {
-                    env.GATE_STATUS == true
+                    (env.GATE_STATUS?.toBoolean()) == true
                     // env.GATE_STATUS?.toBoolean() == true  (if pre-condition fails)
                 }
             }
@@ -181,8 +181,8 @@ pipeline {
                                                         ${env.APP_REPO}:${env.BUILD_NUMBER}", returnStatus:true)
                                 env.resultStatus.pop()
                                 assert env.resultStatus == [:]
-                                env.resultStatus['Image_Scan'] = (Scan_3 == 0) // bole stay bole in local variable 
-                                env.GATE_STATUS = resultStatus.collect { it.value() }                // but in env one you need to use "?"
+                                env.resultStatus['Image_Scan'] = (Scan_3 == 0)     // bool stay bool in local variable 
+                                env.GATE_STATUS = resultStatus.each { it.value() } // but in env one you need to use "?"
                                 if(!GATE_STATUS) {
                                     error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
                                 } else {
