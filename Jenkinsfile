@@ -77,6 +77,21 @@ pipeline {
         }
         stage('Trivy-Repository'){
             stages {
+                stage('Database_Cache RESTORING') {
+                    steps {
+                        script {
+                            def CMD = sh(script:'trivy image --cache-dir ./trivy-cache --download-db-only',
+                            returnStatus: true).toInteger()
+                            stash name: 'trivy-db', includes: 'trivy-cache/**'                
+                            Boolean status = (CMD == 0)
+                            if(!status) {
+                                error("Aborting the next stages=> Database_status: ${status} (EXIT => ${CMD})")
+                            } else {
+                                echo "Aborting the next stages=> Database_status: ${status} (EXIT => ${CMD})"
+                            }
+                        }
+                    }
+                }
                 stage('Initialize SCAN') {
                     steps {
                         echo "TRIVY => [vulnerability scanning] - REPOSITORY\n"
@@ -88,7 +103,6 @@ pipeline {
                         dir('Ansible'){
                             script {
                                 env.Scan_ansible = sh (script:"trivy config \
-                                                                    --db-repository ghcr.io/aquasecurity/trivy-db \
                                                                     --misconfig-scanners ansible \
                                                                     --format json \
                                                                     --output \"../${env.VAR_LOG}/Configuration_Scan.json\" \
@@ -106,6 +120,7 @@ pipeline {
                                     script {
                                         env.resultStatus = [:]
 
+                                        unstash 'trivy-db'
                                         def Scan_1 = sh (script:"trivy repo \
                                                                 --db-repository ghcr.io/aquasecurity/trivy-db \
                                                                 --format json \
@@ -120,6 +135,7 @@ pipeline {
                             steps {
                                 dir('Docker'){
                                     script {
+                                        unstash 'trivy-db'
                                         def Scan_2 = sh (script:"trivy fs \
                                                         --db-repository ghcr.io/aquasecurity/trivy-db \
                                                         --severity HIGH,CRITICAL \
@@ -176,6 +192,7 @@ pipeline {
                     steps {
                         dir('Docker') {
                             script {
+                                unstash 'trivy-db'
                                 def Scan_3 = sh (script:"trivy image \
                                                         --db-repository ghcr.io/aquasecurity/trivy-db \
                                                         --severity HIGH,CRITICAL \
@@ -281,7 +298,8 @@ pipeline {
                 disableDeferredWipeout: true,
                 notFailBuild: true,
                 patterns : [[pattern:'**/*.json',type:'INCLUDE'],
-                            [pattern: 'log_output.txt',type:'EXCLUDE']]
+                            [pattern: 'log_output.txt',type:'EXCLUDE'],
+                            [pattern: './trivy-cache',type:'EXCLUDE']]
             )
             echo "Task Done ."
         }
