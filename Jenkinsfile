@@ -6,8 +6,7 @@ pipeline {
     }
 
     environment { // [health-check , log-file , dovcker-var , git-repo] *
-        CMD          = sh(script:"date '+%F %T'",returnStdout: true).trim()
-        VAR_LOG      = "Reports_${env.CMD}"
+        VAR_LOG      = "Reports"
         REPO_ANSIBLE = 'https://github.com/linux-best/ansible'
         APP_REPO     = 'linuxbest531/python-application'
         APP_NAME     = "python-app-${env.BUILD_NUMBER}"
@@ -92,7 +91,7 @@ pipeline {
                                 env.Scan_ansible = sh (script:"trivy config \
                                                                     --misconfig-scanners ansible \
                                                                     --format json \
-                                                                    --output \"../${env.VAR_LOG}/Configuration_Scan.json\" \
+                                                                    --output \"${env.VAR_LOG}/Configuration_Scan.json\" \
                                                                     ." ,returnStatus: true)
                             }
                         }
@@ -112,7 +111,7 @@ pipeline {
                                                                 --cache-dir ./trivy-db/db \
                                                                 --skip-db-update \
                                                                 --format json \
-                                                                --output \"../${env.VAR_LOG}/REPO.json\" \
+                                                                --output \"${env.VAR_LOG}/REPO.json\" \
                                                                 ${env.REPO_ANSIBLE}",returnStatus: true)
                                         env.resultStatus['REPO'] = (Scan_1 == 0 && env.Scan_ansible?.toBoolean())
                                     }
@@ -131,7 +130,7 @@ pipeline {
                                                         --scanners vuln,secret,misconfig \
                                                         --format json \
                                                         --exit-code 1 \
-                                                        --output \"../${env.VAR_LOG}/DOCKERFILE.json\" \
+                                                        --output \"${env.VAR_LOG}/DOCKERFILE.json\" \
                                                         . ",returnStatus: true) // *******
                                         env.resultStatus['DOCKERFILE'] = (Scan_2 == 0)
                                     }                
