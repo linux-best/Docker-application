@@ -109,7 +109,7 @@ pipeline {
 
                                         unstash 'trivy-db'
                                         def Scan_1 = sh (script:"trivy repo \
-                                                                --cache-dir ./trivy-db \
+                                                                --cache-dir ./trivy-db/db \
                                                                 --skip-db-update \
                                                                 --format json \
                                                                 --output \"../${env.VAR_LOG}/REPO.json\" \
@@ -125,7 +125,7 @@ pipeline {
                                     script {
                                         unstash 'trivy-db'
                                         def Scan_2 = sh (script:"trivy fs \
-                                                        --cache-dir ./trivy-db \
+                                                        --cache-dir ./trivy-db/db \
                                                         --skip-db-update \
                                                         --severity HIGH,CRITICAL \
                                                         --scanners vuln,secret,misconfig \
@@ -183,7 +183,7 @@ pipeline {
                             script {
                                 unstash 'trivy-db'
                                 def Scan_3 = sh (script:"trivy image \
-                                                        --cache-dir ./trivy-db \
+                                                        --cache-dir ./trivy-db/db \
                                                         --skip-db-update \
                                                         --severity HIGH,CRITICAL \
                                                         --format json \
