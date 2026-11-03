@@ -8,7 +8,7 @@ pipeline {
     environment { // [health-check , log-file , dovcker-var , git-repo] *
         CMD          = sh(script:"date '+%F %T'",returnStdout: true).trim()
         VAR_LOG      = "Reports_${env.CMD}"
-        REPO_ANSIBLE = 'https://github.com/repo/ansible'
+        REPO_ANSIBLE = 'https://github.com/linux-best/ansible'
         APP_REPO     = 'linuxbest531/python-application'
         APP_NAME     = "python-app-${env.BUILD_NUMBER}"
         PORT         = '5000'
@@ -70,7 +70,7 @@ pipeline {
                 }
                 dir('Script') {
                     sh "mkdir -p ${env.VAR_LOG}"
-                    git branch: 'main', url: 'https://github.com/repo/Docker-application'
+                    git branch: 'main', url: 'https://github.com/linux-best/Docker-application'
                 }
                 echo "stage Checkout-SCM passed ...!"
             }
@@ -286,7 +286,7 @@ pipeline {
                     subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was successful",
                     body: """
                     Check the details at ${env.BUILD_URL}""",
-                    to: 'email@gmail.com'
+                    to: 'amirmahdifhp@gmail.com'
                 )
             }
         }
@@ -299,7 +299,7 @@ pipeline {
                     subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was failed",
                     body: """
                     Check the details at ${env.BUILD_URL}""",
-                    to: 'email@gmail.com'
+                    to: 'amirmahdifhp@gmail.com'
                 )
             }
         }
