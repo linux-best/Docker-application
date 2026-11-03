@@ -100,6 +100,7 @@ pipeline {
                         echo "Stage Configuration_Scan passed ! [condition_PASSED] => Scanning"
                     }
                 }
+<<<<<<< HEAD
                 stage('Scanning') {
                     parallel {
                         stage('REPO') {
@@ -126,18 +127,50 @@ pipeline {
                                     script {
                                         unstash 'trivy-db'
                                         def Scan_2 = sh (script:"trivy fs \
+=======
+                stage('Scanning-REPO') {
+                    steps {
+                        dir('Ansible'){
+                            script {
+                                env.resultStatus = [:]
+                                unstash 'trivy-db'
+                                def Scan_1 = sh (script:"trivy repo \
+>>>>>>> d71abbb (Update ,Jenkinsfile Parallel_Stages REMOVED)
                                                         --cache-dir ./trivy-db/db \
                                                         --skip-db-update \
-                                                        --severity HIGH,CRITICAL \
-                                                        --scanners vuln,secret,misconfig \
                                                         --format json \
+<<<<<<< HEAD
                                                         --exit-code 1 \
                                                         --output \"${env.VAR_LOG}/DOCKERFILE.json\" \
                                                         . ",returnStatus: true) // *******
                                         env.resultStatus['DOCKERFILE'] = (Scan_2 == 0)
                                     }                
                                 }
+=======
+                                                        --output \"${env.VAR_LOG}/REPO.json\" \
+                                                        ${env.REPO_ANSIBLE}",returnStatus: true)
+                                env.resultStatus['REPO'] = (Scan_1 == 0 && env.Scan_ansible?.toBoolean())
+>>>>>>> d71abbb (Update ,Jenkinsfile Parallel_Stages REMOVED)
                             }
+                        }
+                    }
+                }
+                stage('DOCKERFILE') {
+                    steps {
+                        dir('Docker'){
+                            script {
+                                unstash 'trivy-db'
+                                def Scan_2 = sh (script:"trivy fs \
+                                                --cache-dir ./trivy-db/db \
+                                                --skip-db-update \
+                                                --severity HIGH,CRITICAL \
+                                                --scanners vuln,secret,misconfig \
+                                                --format json \
+                                                --exit-code 1 \
+                                                --output \"${env.VAR_LOG}/DOCKERFILE.json\" \
+                                                . ",returnStatus: true) // *******
+                                env.resultStatus['DOCKERFILE'] = (Scan_2 == 0)
+                            }                
                         }
                     }
                 }
@@ -290,7 +323,7 @@ pipeline {
                 notFailBuild: true,
                 patterns : [[pattern:'**/*.json',type:'EXCLUDE'],
                             [pattern: 'log_output.txt',type:'EXCLUDE'],
-                            [pattern: './trivy-db',type:'EXCLUDE']]
+                            [pattern: './trivy-db',type:'INCLUDE']]
             )
             echo "Task Done ."
         }
