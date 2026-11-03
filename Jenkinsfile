@@ -90,7 +90,7 @@ pipeline {
                                 env.Scan_ansible = sh (script:"trivy config \
                                                                     --misconfig-scanners ansible \
                                                                     --format json \
-                                                                    --output ../${env.VAR_LOG}/Configuration_Scan.json \
+                                                                    --output \"../${env.VAR_LOG}/Configuration_Scan.json\" \
                                                                     ." ,returnStatus: true)
                             }
                         }
@@ -108,7 +108,7 @@ pipeline {
                                         def Scan_1 = sh (script:"trivy repo \
                                                                 --db-repository ghcr.io/aquasecurity/trivy-db \
                                                                 --format json \
-                                                                --output "../${env.VAR_LOG}/'REPO.json'" \
+                                                                --output \"../${env.VAR_LOG}/REPO.json\" \
                                                                 ${env.REPO_ANSIBLE}",returnStatus: true)
                                         env.resultStatus['REPO'] = (Scan_1 == 0 && env.Scan_ansible?.toBoolean())
                                     }
@@ -124,7 +124,7 @@ pipeline {
                                                         --scanners vuln,secret,misconfig \
                                                         --format json \
                                                         --exit-code 1 \
-                                                        --output ../${env.VAR_LOG}/DOCKERFILE.json \
+                                                        --output \"../${env.VAR_LOG}/DOCKERFILE.json\" \
                                                         . ",returnStatus: true) // *******
                                         env.resultStatus['DOCKERFILE'] = (Scan_2 == 0)
                                     }                
@@ -179,7 +179,7 @@ pipeline {
                                                         --format json \
                                                         --exit-code 1 \
                                                         --scanners vuln,secret,misconfig \
-                                                        --output ../${env.VAR_LOG}/Image_Scan.json \
+                                                        --output \"../${env.VAR_LOG}/Image_Scan.json\" \
                                                         ${env.APP_REPO}:${env.BUILD_NUMBER}", returnStatus:true)
                                 env.resultStatus.pop()
                                 assert env.resultStatus == [:]
