@@ -241,10 +241,10 @@ pipeline {
                 withCredentials([string(
                     credentialsId : 'Dockerpass' ,
                     variable : 'PASS_KEY'    
-                )])
-                sh "echo ${PASS_KEY} | docker login -u 'linuxbest531' --password-stdin" // just to specifing the authentication so that ,
-                                                                                        // the push process doesn't fail ,                
-                script {                                                                // or take longer time for the perpuse of authenticating .
+                )]) {
+                    sh "echo ${PASS_KEY} | docker login -u 'linuxbest531' --password-stdin"   
+                }       
+                script {
                     docker.withRegistry('https://index.docker.io/v1/', "Docker_Auth_Keys") {
                         dockerImage.push()
                     }
@@ -255,18 +255,18 @@ pipeline {
     }
     post {
         always { 
-            // Credentials managment (SECURITY)
+            // Credentials managment (SECURITY) & Capturing the LATEST Report
             withCredentials([usernamePassword(
                 credentialsId : 'JenkinsPass' ,
                 usernameVariable : 'username' ,
                 passwordVariable : 'password'
-            )])
-            // Capturing the LATEST Report
-            sh "curl \
+            )]) {
+                sh "curl \
                 -u ${username}:${password} \
                 -i -H 'Accept:application/json' \
                 --output log_output.txt \
                 ${JENKINS_URL}/job/${JOB_NAME}/lastBuild/consoleText"
+            }
             // Cleaning the WORKSPACE
             cleanWs(
                 cleanWhenNotBuilt: false,
