@@ -108,7 +108,7 @@ pipeline {
                                         def Scan_1 = sh (script:"trivy repo \
                                                                 --db-repository ghcr.io/aquasecurity/trivy-db \
                                                                 --format json \
-                                                                --output "../${env.VAR_LOG}/REPO.json" \
+                                                                --output "../${env.VAR_LOG}/'REPO.json'" \
                                                                 ${env.REPO_ANSIBLE}",returnStatus: true)
                                         env.resultStatus['REPO'] = (Scan_1 == 0 && env.Scan_ansible?.toBoolean())
                                     }
