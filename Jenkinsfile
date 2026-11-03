@@ -80,7 +80,7 @@ pipeline {
                 stage('Initialize SCAN') {
                     steps {
                         echo "TRIVY => [vulnerability scanning] - REPOSITORY\n"
-                        echo "==S==C==A==N==${env.REPO_ANSIBLE}=R==E==P==O==!=="
+                        echo "==S==C==A==N= ${env.REPO_ANSIBLE} =R==E==P==O==!=="
                     }
                 }
                 stage('Configuration_Scan') {
@@ -167,7 +167,7 @@ pipeline {
                 stage('Initialize SCAN') {
                     steps {
                         echo "TRIVY => [image/reciepe scanning] - REPOSITORY\n"
-                        echo "==S==C==A==N==${env.REPO_ANSIBLE}=I==M==A==G==E=="
+                        echo "==S==C==A==N= ${env.REPO_ANSIBLE} =I==M==A==G==E=="
                     }
                 }
                 stage('Image_Scan') {
@@ -202,34 +202,39 @@ pipeline {
                         // echo "App is running fine !"          <= BACKUP-COMMAND = it would provide the same test service (HTTP-reachability)
                         // || 
                         // echo "App isn't running fine !!"
-            steps {    
-                sh '''
-                docker run -d \
-                -p ${env.PORT}:${env.PORT} \
-                --name ${env.APP_NAME} \
-                ${env.APP_REPO}:${env.BUILD_NUMBER}
-                sleep 5
+            steps {
+                withEnv(["PORT=${env.PORT}",
+                "APP_NAME=${env.APP_NAME}",
+                "APP_REPO=${APP_REPO}",
+                "BUILD_NUMBER=${env.BUILD_NUMBER}"]) {
 
-                index=1
-                counter=3
+                    sh '''#!/bin/bash
+                        docker run -d \
+                        -p "$PORT:$PORT" \
+                        --name "$APP_NAME" \
+                        "$APP_REPO:$BUILD_NUMBER"
+                        sleep 5
 
-                while [ $index -le $counter ]
-                do
-                        if curl --connect-timeout 1 \
-                        http://github.com/ --output /dev/null
-                        then
-                                echo "App is running fine"
-                                exit 0
-                        else
-                                echo "CHECKING FAILED   !" && sleep 2
-                                index=$((index+1))
-                        fi
-                done
-                echo "App isn't running fine :(" && exit 1
-                
-                sleep 10
-                docker container stop ${env.APP_NAME} && docker container rm -f ${env.APP_NAME} || false
-                '''
+                        trap "docker container stop "$APP_NAME" && docker container rm -f "$APP_NAME"" EXIT
+                        index=1
+                        counter=3
+
+                        while [ $index -le $counter ]
+                        do
+                                if curl -sf --connect-timeout 1 \
+                                http://localhost:"$PORT"/ --output /dev/null
+                                then
+                                        echo "App is running fine"
+                                        sleep 10
+                                        exit 0
+                                else
+                                        echo "CHECKING FAILED   !" && sleep 2
+                                        index=$((index+1))
+                                fi
+                        done
+                        echo "App isn't running fine :(" && exit 1
+                    '''
+                }    
                 echo "stage Test passed"
             }
         }
@@ -239,7 +244,7 @@ pipeline {
                     credentialsId : 'Dockerpass' ,
                     variable : 'PASS_KEY'    
                 )]) {
-                    sh "echo ${PASS_KEY} | docker login -u 'linuxbest531' --password-stdin"   
+                    sh "echo '$PASS_KEY' | docker login -u 'linuxbest531' --password-stdin"   
                 }       
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "Docker_Auth_Keys") {
@@ -260,7 +265,7 @@ pipeline {
             )]) {
                 sh """
                 curl \
-                -u ${username}:${password} \
+                -u '$username:$password' \
                 -i -H 'Accept:application/json' \
                 --output log_output.txt \
                 ${JENKINS_URL}/job/${JOB_NAME}/lastBuild/consoleText
