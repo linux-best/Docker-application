@@ -77,25 +77,10 @@ pipeline {
         }
         stage('Trivy-Repository'){
             stages {
-                stage('Database_Cache RESTORING') {
-                    steps {
-                        script {
-                            def CMD = sh(script:'trivy --db-repository ghcr.io/aquasecurity/trivy-db image \
-                            --cache-dir ./trivy-cache \
-                            --download-db-only',
-                            returnStatus: true).toInteger()
-                            stash name: 'trivy-db', includes: 'trivy-cache/**'                
-                            Boolean status = (CMD == 0)
-                            if(!status) {
-                                error("Aborting the next stages=> Database_status: ${status} (EXIT => ${CMD})")
-                            } else {
-                                echo "Aborting the next stages=> Database_status: ${status} (EXIT => ${CMD})"
-                            }
-                        }
-                    }
-                }
                 stage('Initialize SCAN') {
                     steps {
+                        sh "cp -r $JENKINS_HOME/trivy-db/ ./trivy-db"
+                        stash(includes: 'trivy-db/**', name: 'trivy-db')
                         echo "TRIVY => [vulnerability scanning] - REPOSITORY\n"
                         echo "==S==C==A==N= ${env.REPO_ANSIBLE} =R==E==P==O==!=="
                     }
@@ -124,7 +109,8 @@ pipeline {
 
                                         unstash 'trivy-db'
                                         def Scan_1 = sh (script:"trivy repo \
-                                                                --db-repository ghcr.io/aquasecurity/trivy-db \
+                                                                --cache-dir ./trivy-db \
+                                                                --skip-db-update \
                                                                 --format json \
                                                                 --output \"../${env.VAR_LOG}/REPO.json\" \
                                                                 ${env.REPO_ANSIBLE}",returnStatus: true)
@@ -139,7 +125,8 @@ pipeline {
                                     script {
                                         unstash 'trivy-db'
                                         def Scan_2 = sh (script:"trivy fs \
-                                                        --db-repository ghcr.io/aquasecurity/trivy-db \
+                                                        --cache-dir ./trivy-db \
+                                                        --skip-db-update \
                                                         --severity HIGH,CRITICAL \
                                                         --scanners vuln,secret,misconfig \
                                                         --format json \
@@ -196,7 +183,8 @@ pipeline {
                             script {
                                 unstash 'trivy-db'
                                 def Scan_3 = sh (script:"trivy image \
-                                                        --db-repository ghcr.io/aquasecurity/trivy-db \
+                                                        --cache-dir ./trivy-db \
+                                                        --skip-db-update \
                                                         --severity HIGH,CRITICAL \
                                                         --format json \
                                                         --exit-code 1 \
@@ -299,9 +287,9 @@ pipeline {
                 deleteDirs: true,
                 disableDeferredWipeout: true,
                 notFailBuild: true,
-                patterns : [[pattern:'**/*.json',type:'INCLUDE'],
+                patterns : [[pattern:'**/*.json',type:'EXCLUDE'],
                             [pattern: 'log_output.txt',type:'EXCLUDE'],
-                            [pattern: './trivy-cache',type:'EXCLUDE']]
+                            [pattern: './trivy-db',type:'EXCLUDE']]
             )
             echo "Task Done ."
         }
