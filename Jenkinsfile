@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment { // [health-check , log-file , dovcker-var , git-repo] *
-        CMD          = sh(script:"date '+%F %T'",returnStdout: true).trim()
+        CMD          = sh(script:"date--'+%F-%T'",returnStdout: true).trim()
         VAR_LOG      = "Reports_${env.CMD}"
         REPO_ANSIBLE = 'https://github.com/linux-best/ansible'
         APP_REPO     = 'linuxbest531/python-application'
@@ -109,7 +109,7 @@ pipeline {
                                                                 --db-repository ghcr.io/aquasecurity/trivy-db \
                                                                 --format json \
                                                                 --output ../${env.VAR_LOG}/REPO.json \
-                                                                ${env.REPO_ANSIBLE}" ,returnStatus: true)
+                                                                ${env.REPO_ANSIBLE}",returnStatus: true)
                                         env.resultStatus['REPO'] = (Scan_1 == 0 && env.Scan_ansible?.toBoolean())
                                     }
                                 }
@@ -119,7 +119,7 @@ pipeline {
                             steps {
                                 dir('Docker'){
                                     script {
-                                        def Scan_2 = sh (script:"trivy config \
+                                        def Scan_2 = sh (script:"trivy fs \
                                                         --severity HIGH,CRITICAL \
                                                         --scanners vuln,secret,misconfig \
                                                         --format json \
@@ -341,3 +341,4 @@ def Test_Connection(String IP){
 //    echo "Scan_Configuration was failed"
 //fi
 //"""
+
