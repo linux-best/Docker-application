@@ -64,12 +64,12 @@ pipeline {
             }
             steps {
                 dir('Ansible'){
-                    sh "mkdir -p ${env.VAR_LOG}"
                     git branch: 'main', url: "${env.REPO_ANSIBLE}"
+                    sh "mkdir -p ${env.VAR_LOG}"
                 }
                 dir('Docker') {
-                    sh "mkdir -p ${env.VAR_LOG}"
                     git branch: 'main', url: 'https://github.com/linux-best/Docker-application'
+                    sh "mkdir -p ${env.VAR_LOG}"
                 }
                 echo "stage Checkout-SCM passed ...!"
             }
@@ -87,10 +87,12 @@ pipeline {
                 stage('Configuration_Scan') {
                     steps {
                         dir('Ansible'){
+                            sh "ls -l"
                             script {
                                 env.Scan_ansible = sh (script:"trivy config \
                                                                     --misconfig-scanners ansible \
                                                                     --format json \
+                                                                    --exit-code 1 \
                                                                     --output \"${env.VAR_LOG}/Configuration_Scan.json\" \
                                                                     ." ,returnStatus: true)
                             }
@@ -334,20 +336,10 @@ def Test_Connection(String IP){
     return Result
 }
 
-
+// ====================================================================================
 // function in grrovy file for logging and attaching ut to email-notification .
 // multi-json output files .
 // echo commands -> log-msg on script fail part 
 // trivy dashboard
 // create /reports directory
 // ====================================================================================
-//sh """
-//index = ${Scan_2}
-//cou
-//if [ $index -eq $count ] 
-//then
-//    echo "Scan_Configuration was successful"
-//else
-//    echo "Scan_Configuration was failed"
-//fi
-//"""
