@@ -117,7 +117,7 @@ pipeline {
                         }
                     }
                 }
-                stage('DOCKERFILE') {
+                stage('Scanning-DOCKERFILE') {
                     steps {
                         dir('Docker'){
                             script {
@@ -194,7 +194,7 @@ pipeline {
                                 if(!GATE_STATUS) {
                                     error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
                                 } else {
-                                    echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
+                                   echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
                                 }
                             }
                         }
