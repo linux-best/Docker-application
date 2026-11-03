@@ -68,7 +68,7 @@ pipeline {
                     sh "mkdir -p ${env.VAR_LOG}"
                     git branch: 'main', url: "${env.REPO_ANSIBLE}"
                 }
-                dir('Script') {
+                dir('Docker') {
                     sh "mkdir -p ${env.VAR_LOG}"
                     git branch: 'main', url: 'https://github.com/linux-best/Docker-application'
                 }
