@@ -214,11 +214,11 @@ pipeline {
                 sleep 5
 
                 index=1
-                counter=5
+                counter=3
 
                 while [ $index -le $counter ]
                 do
-                        if curl --connect-timeout 3 \
+                        if curl --connect-timeout 1 \
                         http://github.com/ --output /dev/null
                         then
                                 echo "App is running fine"
@@ -287,7 +287,7 @@ pipeline {
                     subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was successful",
                     body: """
                     Check the details at ${env.BUILD_URL}""",
-                    to: "email@gmail.com"
+                    to: 'email@gmail.com'
                 )
             }
         }
@@ -300,7 +300,7 @@ pipeline {
                     subject: "Build ${env.BUILD_NUMBER} of ${env.JOB_NAME} was failed",
                     body: """
                     Check the details at ${env.BUILD_URL}""",
-                    to: "email@gmail.com"
+                    to: 'email@gmail.com'
                 )
             }
         }
