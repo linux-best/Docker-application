@@ -64,9 +64,6 @@ pipeline {
                 }
             }
             steps {
-                script{ // important **
-                    def log_1 = script_1.logmsg("info","pipeline started","stage =>(checkout_SCM)")
-                }
                 dir('Ansible'){
                     sh "mkdir -p ${env.VAR_LOG}"
                     git branch: 'main', url: "${env.REPO_ANSIBLE}"
@@ -261,11 +258,13 @@ pipeline {
                 usernameVariable : 'username' ,
                 passwordVariable : 'password'
             )]) {
-                sh "curl \
+                sh """
+                curl \
                 -u ${username}:${password} \
                 -i -H 'Accept:application/json' \
                 --output log_output.txt \
-                ${JENKINS_URL}/job/${JOB_NAME}/lastBuild/consoleText"
+                ${JENKINS_URL}/job/${JOB_NAME}/lastBuild/consoleText
+                """
             }
             // Cleaning the WORKSPACE
             cleanWs(
