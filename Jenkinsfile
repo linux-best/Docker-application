@@ -80,7 +80,9 @@ pipeline {
                 stage('Database_Cache RESTORING') {
                     steps {
                         script {
-                            def CMD = sh(script:'trivy image --cache-dir ./trivy-cache --download-db-only',
+                            def CMD = sh(script:'trivy --db-repository ghcr.io/aquasecurity/trivy-db image \
+                            --cache-dir ./trivy-cache \
+                            --download-db-only',
                             returnStatus: true).toInteger()
                             stash name: 'trivy-db', includes: 'trivy-cache/**'                
                             Boolean status = (CMD == 0)
