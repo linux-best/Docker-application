@@ -6,7 +6,7 @@ pipeline {
     }
 
     environment { // [health-check , log-file , dovcker-var , git-repo] *
-        CMD          = sh(script:"date--'+%F-%T'",returnStdout: true).trim()
+        CMD          = sh(script:"date '+%F %T'",returnStdout: true).trim()
         VAR_LOG      = "Reports_${env.CMD}"
         REPO_ANSIBLE = 'https://github.com/linux-best/ansible'
         APP_REPO     = 'linuxbest531/python-application'
@@ -108,7 +108,7 @@ pipeline {
                                         def Scan_1 = sh (script:"trivy repo \
                                                                 --db-repository ghcr.io/aquasecurity/trivy-db \
                                                                 --format json \
-                                                                --output ../${env.VAR_LOG}/REPO.json \
+                                                                --output "../${env.VAR_LOG}/REPO.json" \
                                                                 ${env.REPO_ANSIBLE}",returnStatus: true)
                                         env.resultStatus['REPO'] = (Scan_1 == 0 && env.Scan_ansible?.toBoolean())
                                     }
@@ -244,7 +244,7 @@ pipeline {
                     credentialsId : 'Dockerpass' ,
                     variable : 'PASS_KEY'    
                 )]) {
-                    sh "echo '$PASS_KEY' | docker login -u 'linuxbest531' --password-stdin"   
+                    sh "echo '$PASS_KEY' | docker login -u 'linuxbest531' --password-stdin"
                 }       
                 script {
                     docker.withRegistry('https://index.docker.io/v1/', "Docker_Auth_Keys") {
@@ -341,4 +341,3 @@ def Test_Connection(String IP){
 //    echo "Scan_Configuration was failed"
 //fi
 //"""
-
