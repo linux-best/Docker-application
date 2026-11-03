@@ -88,6 +88,7 @@ pipeline {
                         dir('Ansible'){
                             script {
                                 env.Scan_ansible = sh (script:"trivy config \
+                                                                    --db-repository ghcr.io/aquasecurity/trivy-db
                                                                     --misconfig-scanners ansible \
                                                                     --format json \
                                                                     --output \"../${env.VAR_LOG}/Configuration_Scan.json\" \
@@ -120,6 +121,7 @@ pipeline {
                                 dir('Docker'){
                                     script {
                                         def Scan_2 = sh (script:"trivy fs \
+                                                        --db-repository ghcr.io/aquasecurity/trivy-db
                                                         --severity HIGH,CRITICAL \
                                                         --scanners vuln,secret,misconfig \
                                                         --format json \
@@ -175,6 +177,7 @@ pipeline {
                         dir('Docker') {
                             script {
                                 def Scan_3 = sh (script:"trivy image \
+                                                        --db-repository ghcr.io/aquasecurity/trivy-db
                                                         --severity HIGH,CRITICAL \
                                                         --format json \
                                                         --exit-code 1 \
