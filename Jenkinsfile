@@ -78,7 +78,29 @@ pipeline {
             stages {
                 stage('Initialize SCAN') {
                     steps {
-                        sh "cp -r $JENKINS_HOME/trivy-db/ ./trivy-db"
+                        script {
+                            withEnv(["PATH=$JENKINS_HOME/trivy-db","DIR=trivy-db"]) {
+                                def CMD = sh (script:'''#!/bin/bash
+                                    set -o pipefail
+
+                                    function Exits_Check() {
+                                        if ls -l | grep -q "$DIR"; then
+                                            exit 0
+                                        fi
+                                        exit 1
+                                    }
+                                    if [ -d "$PATH" ]; then
+                                        cp -r "$PATH" "./$DIR"    
+                                    fi
+                                    trap "Exits_Check" EXIT
+                                ''',returnStatus: true)
+                            }
+                            if(CMD == 0) {
+                                echo "File exits in workspace - Continuing.....!"
+                            } else {
+                                error("File exits in workspace - Failing.......!")
+                            }
+                        }
                         stash(includes: 'trivy-db/**', name: 'trivy-db')
                         echo "TRIVY => [vulnerability scanning] - REPOSITORY\n"
                         echo "==S==C==A==N= ${env.REPO_ANSIBLE} =R==E==P==O==!=="
@@ -87,7 +109,6 @@ pipeline {
                 stage('Configuration_Scan') {
                     steps {
                         dir('Ansible'){
-                            sh "ls -l"
                             script {
                                 env.Scan_ansible = sh (script:"trivy config \
                                                                     --misconfig-scanners ansible \
@@ -104,25 +125,23 @@ pipeline {
                     steps {
                         dir('Ansible'){
                             script {
-                                env.resultStatus = [:]
                                 unstash 'trivy-db'
-                                def Scan_1 = sh (script:"trivy repo \
+                                env.Scan_1 = sh (script:"trivy repo \
                                                         --cache-dir ./trivy-db/db \
                                                         --skip-db-update \
                                                         --format json \
                                                         --output \"${env.VAR_LOG}/REPO.json\" \
                                                         ${env.REPO_ANSIBLE}",returnStatus: true)
-                                env.resultStatus['REPO'] = (Scan_1 == 0 && env.Scan_ansible?.toBoolean())
                             }
                         }
                     }
                 }
-                stage('Scanning-DOCKERFILE') {
+                stage('DOCKERFILE') {
                     steps {
                         dir('Docker'){
                             script {
                                 unstash 'trivy-db'
-                                def Scan_2 = sh (script:"trivy fs \
+                                env.Scan_2 = sh (script:"trivy fs \
                                                 --cache-dir ./trivy-db/db \
                                                 --skip-db-update \
                                                 --severity HIGH,CRITICAL \
@@ -131,7 +150,6 @@ pipeline {
                                                 --exit-code 1 \
                                                 --output \"${env.VAR_LOG}/DOCKERFILE.json\" \
                                                 . ",returnStatus: true) // *******
-                                env.resultStatus['DOCKERFILE'] = (Scan_2 == 0)
                             }                
                         }
                     }
@@ -139,7 +157,11 @@ pipeline {
                 stage('Conclusion_Gate') {
                     steps {
                         script {
+                            def resultStatus = [:]
+                            resultStatus['REPO'] = (env.Scan_1?.toInteger() == 0 && env.Scan_ansible?.toInteger() == 0)
+                            resultStatus['DOCKERFILE'] = (env.Scan_2?.toInteger() == 0)
                             env.GATE_STATUS = resultStatus.values().every { it }
+                            echo "Gate: ${resultStatus}"
                             if(!env.GATE_STATUS?.toBoolean()) {
                                 echo "SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}"
                             } else {
@@ -187,14 +209,14 @@ pipeline {
                                                         --scanners vuln,secret,misconfig \
                                                         --output \"../${env.VAR_LOG}/Image_Scan.json\" \
                                                         ${env.APP_REPO}:${env.BUILD_NUMBER}", returnStatus:true)
-                                env.resultStatus.pop()
-                                assert env.resultStatus == [:]
-                                env.resultStatus['Image_Scan'] = (Scan_3 == 0)     // bool stay bool in local variable 
-                                env.GATE_STATUS = resultStatus.each { it.value() } // but in env one you need to use "?"
-                                if(!GATE_STATUS) {
+                                def resultStatus = [:]
+                                resultStatus['Image_Scan'] = (Scan_3 == 0)          
+                                env.GATE_STATUS = resultStatus.each { it.value() }      
+                                echo "Gate: ${resultStatus}"                         // bool stay bool in local variable
+                                if(!(env.GATE_STATUS?.toBoolean())) {                // but in env one you need to use "?"
                                     error("SEC_GATE FAILED => gate_status : ${env.GATE_STATUS}")
                                 } else {
-                                   echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
+                                    echo "SEC_GATE PASSED => gate_status : ${env.GATE_STATUS}"
                                 }
                             }
                         }
